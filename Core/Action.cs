@@ -3,23 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace XenoRPGLib
+namespace XRpg
 {
-	public enum ActionType
-	{
-		Passive, // Action is checked automatically
-		Active,  // Action must be activated
-	}
-
-	public class RpgAction
+	public class Action
 	{
 		//TODO: Action takes input modifiers, returns result
 		/* Input modifiers:
-			•	Skill + 
-				Addl. char. modifiers (low health/stamina) + 
-				Character effect modifiers (stun, sleep, DOT, etc.) + 
+			•	Skill +
+				Addl. char. modifiers (low health/stamina) +
+				Character effect modifiers (stun, sleep, DOT, etc.) +
 				random roll
-		
+
 			•	Base difficulty +
 				Target diff. modifier (dodge, parry, etc.) +
 				Environmental diff. modifiers (water, light, etc.) +
@@ -27,7 +21,7 @@ namespace XenoRPGLib
 		public float m_fDiffBase;
 		public float m_fDiffTotal;
 		public ActionType m_actionType;
-		public RpgStat m_statSkill; // Associated skill
+		public Stat m_statSkill; // Associated skill
 		public float m_fRollMax;    // RNG range
 		public int m_iXPForFail;    // Fail XP Amount
 		public int m_iXPForSuccess; // Success XP Amount

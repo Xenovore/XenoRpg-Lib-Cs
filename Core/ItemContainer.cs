@@ -1,36 +1,22 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SQLite;
+//TODO: MOVE TO MANAGER>>>>> using System.Data.SQLite;
 using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Xml;
 using System.Windows.Forms;//TODO: Remove, only needed for temp message box...
-using XenoRPGEditor;
 
-namespace XenoRPGLib
+namespace XRpg
 {
-	// AddItem() result types...
-	public enum ItemAddResult
-	{
-		NullItem,   // Attempt to add null item
-		NotAllowed, // Item type not allowed in this container
-		NotEmpty,   // Attempt to add item to full slot
-		Full,       // Container slots are all taken
-		OverWeight, // Item too heavy for container
-		OverVolume, // Item too big for container
-		Locked,     // container cannot be manipulated
-		Allowed,
-	}
-
-
 	// CONTAINER
 	// Containers hold items internally; items are only visible when
 	// interacting with a container via UI
 
-	public class RpgItemContainer: RpgItem
+	// Database Table: Container
+	public class ItemContainer: Item
 	{
-		public List<RpgItem> m_listItems;
+		public List<Item> m_listItems;
 		//TODO: Use slot item type list? Would cut down on extra slots that are only used to check valid item type
 		//public List<RpgItemType> m_listTypeAllowed; // type allowed per slot
 
@@ -40,30 +26,39 @@ namespace XenoRPGLib
 		public int   m_iVolumeCap;
 		public float m_fWeightTotal;
 		public float m_fWeightCap;
-		public RpgItemType m_itemTypeAllowed;
+		public ItemType m_itemTypeAllowed; // Item types allowed in container
 
+		/*TODO: MOVE TO MANAGER>>>>>
+		//KEVTODO: If connection pooling required, add
+		// "Pooling=True;Max Pool Size=100;" to this...
+		static string strDBConnection = @"Data Source=InvTest.sqlite";
+		static SQLiteConnection m_sqlConn = new SQLiteConnection( strDBConnection );
+		public static SQLiteConnection SQLConn
+		{
+			get { return m_sqlConn; }
+		}
+		//<<<<<*/
 
 		//----------------------------------------------------------------------
-		public RpgItemContainer()
+		public ItemContainer()
 		{
-			m_listItems = new List<RpgItem>();
-
-			m_itemType     = RpgItemType.ContEndo;
+			m_listItems = new List<Item>();
+			Type     = ItemType.Container;
 			m_iItemTotal   = 0;
-			m_iItemCap     = 0;    
+			m_iItemCap     = 0;
 			m_iVolumeTotal = 0;
-			m_iVolumeCap   = 0;    
+			m_iVolumeCap   = 0;
 			m_fWeightTotal = 0.0f;
 			m_fWeightCap   = 0.0f;
-			m_bDisabled      = false;
-			m_bySizeH      = 1;
-			m_bySizeW      = 1;
+			IsEnabled    = false;
+			SizeH      = 1;
+			SizeW      = 1;
 
 		}
 
 
 		//----------------------------------------------------------------------
-		~RpgItemContainer()
+		~ItemContainer()
 		{
 			//TODO C++: Free listItems and all contained items
 		}
@@ -73,13 +68,12 @@ namespace XenoRPGLib
 		public void InitCapacity()
 		{
 			// Should be faster to allocate space all at once vs. each time a new item is added
-			if ( m_iItemCap > 0 )
-				m_listItems.Capacity = (int)m_iItemCap;
+			if ( m_iItemCap > 0 ) m_listItems.Capacity = m_iItemCap;
 		}
 
 
 		//----------------------------------------------------------------------
-		public ItemAddResult CanAdd( RpgItem item )
+		public ItemAddResult CanAdd( Item item )
 		{
 			ItemAddResult addRes;
 
@@ -87,10 +81,10 @@ namespace XenoRPGLib
 			if ( item == null ) addRes = ItemAddResult.NullItem;
 
 			// Locked...?
-			if ( m_bDisabled ) addRes = ItemAddResult.Locked;
-			
+			else if ( IsEnabled ) addRes = ItemAddResult.Locked;
+
 			// Allowed item type...?
-			else if ( ( item.m_itemType & m_itemTypeAllowed ) == 0 )
+			else if ( ( item.Type & m_itemTypeAllowed ) != item.Type )
 			{
 				addRes = ItemAddResult.NotAllowed;
 			}
@@ -102,20 +96,20 @@ namespace XenoRPGLib
 				addRes = ItemAddResult.Full;
 			}
 
-			//TODO: Weight is special case... 
+			//TODO: Weight is special case...
 			// Need to check back through parent containers and make
 			// sure it's not exceeding weight cap. of parent containers
 
 			// Over weight...
-			else if ( ( m_fWeightCap != 0 ) &&
-				( item.m_fWeight + m_fWeightTotal > m_fWeightCap ) )
+			else if ( ( m_fWeightCap > 0 ) &&
+				( item.Weight + m_fWeightTotal > m_fWeightCap ) )
 			{
 				addRes = ItemAddResult.OverWeight;
 			}
 
 			// Over volume...?
-			else if ( ( m_iVolumeCap != 0 ) &&
-				( ( item.m_bySizeH * item.m_bySizeW ) + m_iVolumeTotal > m_iVolumeCap ) )
+			else if ( ( m_iVolumeCap > 0 ) &&
+				( ( item.SizeH * item.SizeW ) + m_iVolumeTotal > m_iVolumeCap ) )
 			{
 				addRes = ItemAddResult.OverVolume;
 			}
@@ -161,33 +155,33 @@ namespace XenoRPGLib
 					strMsg = "Cannot add '{0}'. Container '{1}' is full.";
 					break;
 			}
-			return string.Format( strMsg, strNameAddItem, this.m_strName );
+			return string.Format( strMsg, strNameAddItem, this.Name );
 		}
 
 
 		//----------------------------------------------------------------------
 		// AddItem()
 		//----------------------------------------------------------------------
-		public ItemAddResult AddItem( RpgItem item, bool bStack = false )
+		public ItemAddResult AddItem( Item item, bool bStack = false )
 		{
 			//TODO: Check for matching existing item; if stackable,
 			// then try to add to that item's stack (quantity)
-			
+
 			ItemAddResult addRes = CanAdd( item );
 			if ( addRes != ItemAddResult.Allowed )
 			{
-				//TODO: Option to check and add to sub-containers, 
+				//TODO: Option to check and add to sub-containers,
 				// if can't add to this container; e.g. drop earring on
 				// head slot and it finds ear slot
 
 				//TODO: remove temp message box...
-				MessageBox.Show( GetAddResultText( addRes, item.m_strName ) );
+				MessageBox.Show( GetAddResultText( addRes, item.Name ) );
 
 				return addRes;
 			}
 
-			m_fWeightTotal += item.m_fWeight;
-			m_iVolumeTotal += item.m_bySizeW * item.m_bySizeH;
+			m_fWeightTotal += item.Weight;
+			m_iVolumeTotal += item.SizeW * item.SizeH;
 
 			m_listItems.Add( item );
 			m_iItemTotal++;
@@ -212,17 +206,17 @@ namespace XenoRPGLib
 
 			for ( int i = 0; i < m_listItems.Count(); ++i )
 			{
-				string strItemName = m_listItems[ i ].m_strName;
+				string strItemName = m_listItems[ i ].Name;
 				if ( strName == strItemName )
 				{
 					//TODO: ADD not remove
 					m_listItems.RemoveAt( i );
 					return true;
 				}
-				else if ( bRecurse && m_listItems[ i ] is RpgItemContainer )
+				else if ( bRecurse && m_listItems[ i ] is ItemContainer )
 				{
-					bool bAdded = 
-						( (RpgItemContainer)m_listItems[ i ] ).AddItemToContainerByName(
+					bool bAdded =
+						( (ItemContainer)m_listItems[ i ] ).AddItemToContainerByName(
 							strName,
 							bRecurse );
 					if ( bAdded ) return bAdded;
@@ -249,9 +243,9 @@ namespace XenoRPGLib
 				string.Format( "Item index {0} out of bounds.", i ) );
 
 			// Save weight/vol and subtract later only if remove succeeds...
-			float fItemWt = m_listItems[ i ].m_fWeight;
-			int iItemSize = m_listItems[ i ].m_bySizeW * m_listItems[ i ].m_bySizeH;
-			
+			float fItemWt = m_listItems[ i ].Weight;
+			int iItemSize = m_listItems[ i ].SizeW * m_listItems[ i ].SizeH;
+
 			try
 			{
 				m_listItems.RemoveAt( i );
@@ -265,7 +259,7 @@ namespace XenoRPGLib
 
 			m_fWeightTotal -= fItemWt;
 			m_iVolumeTotal -= iItemSize;
-			
+
 			return true;
 		}
 
@@ -273,11 +267,11 @@ namespace XenoRPGLib
 		//----------------------------------------------------------------------
 		public bool RemoveItemByName( string strName )
 		{
-			RpgItem itemTmp = m_listItems.Find( n => strName == m_strName );
+			Item itemTmp = m_listItems.Find( n => strName == Name );
 			if ( itemTmp == null ) return false; // Not found
 
-			m_iVolumeTotal -= itemTmp.m_bySizeW * itemTmp.m_bySizeH;
-			m_fWeightTotal -= itemTmp.m_fWeight;
+			m_iVolumeTotal -= itemTmp.SizeW * itemTmp.SizeH;
+			m_fWeightTotal -= itemTmp.Weight;
 			m_listItems.Remove( itemTmp );
 			return true;
 		}
@@ -288,15 +282,15 @@ namespace XenoRPGLib
 		{
 			for ( int i = 0; i < m_listItems.Count(); ++i )
 			{
-				string strItemName = m_listItems[ i ].m_strName;
+				string strItemName = m_listItems[ i ].Name;
 				if ( strName == strItemName )
 				{
 					return RemoveItem( i );
 				}
-				else if ( ( bRecurse ) && ( m_listItems[ i ] is RpgItemContainer ) )
+				else if ( ( bRecurse ) && ( m_listItems[ i ] is ItemContainer ) )
 				{
-					bool bRemoved = 
-						( (RpgItemContainer)m_listItems[ i ] ).RemoveItemByName(
+					bool bRemoved =
+						( (ItemContainer)m_listItems[ i ] ).RemoveItemByName(
 							strName,
 							bRecurse );
 					if ( bRemoved ) return bRemoved;
@@ -310,19 +304,19 @@ namespace XenoRPGLib
 
 		//----------------------------------------------------------------------
 		// FindItemByName( <name>, <recurse?> )
-		// • Find item <name>; returns the item object if found. 
+		// • Find item <name>; returns the item object if found.
 		//   <recurse?> specifies whether to search contained containers.
 		//----------------------------------------------------------------------
-		public RpgItem FindItemByName( string strName, bool bRecurse = false )
+		public Item FindItemByName( string strName, bool bRecurse = false )
 		{
 			for ( int i = 0; i < m_listItems.Count(); ++i )
 			{
-				string strItemName = m_listItems[ i ].m_strName;
+				string strItemName = m_listItems[ i ].Name;
 				if ( strName == strItemName ) return m_listItems[ i ];
-				else if ( ( bRecurse ) && ( m_listItems[ i ] is RpgItemContainer ) )
+				else if ( ( bRecurse ) && ( m_listItems[ i ] is ItemContainer ) )
 				{
-					RpgItem item = 
-						( (RpgItemContainer)m_listItems[ i ] ).FindItemByName(
+					Item item =
+						( (ItemContainer)m_listItems[ i ] ).FindItemByName(
 							strName,
 							bRecurse );
 					if ( item != null ) return item;
@@ -334,25 +328,25 @@ namespace XenoRPGLib
 
 
 		//----------------------------------------------------------------------
-		// Returns the newly added item object if it's a container, 
+		// Returns the newly added item object if it's a container,
 		// otherwise we don't care -- return null...
 		//----------------------------------------------------------------------
 		public ItemAddResult AddNewItem(
 			string strName,
-			RpgItemType type = RpgItemType.Any,
+			ItemType type = ItemType.Any,
 			float fWeight    = 0.01f,
 			byte byVolW      = 1,
 			byte byVolH      = 1 )
 		{
-			RpgItem itemNew = new RpgItem()
+			Item itemNew = new Item()
 			{
-				m_strName      = strName,
-				m_itemType     = type,
-				m_fWeight      = fWeight,
-				m_bySizeW      = byVolW,
-				m_bySizeH      = byVolH,
-				m_iQuantity    = 1,
-				m_iQuantityCap = 1,
+				Name      = strName,
+				Type     = type,
+				Weight      = fWeight,
+				SizeW      = byVolW,
+				SizeH      = byVolH,
+				Quantity    = 1,
+				QuantityCap = 1,
 			};
 
 			return AddItem( itemNew );
@@ -360,27 +354,27 @@ namespace XenoRPGLib
 
 
 		//----------------------------------------------------------------------
-		//	AddNewContainer() 
+		//	AddNewContainer()
 		//	• Creates a new container and puts it in the current container
 		//----------------------------------------------------------------------
-		public RpgItemContainer AddNewContainer(
+		public ItemContainer AddNewContainer(
 			string strName,
-			RpgItemType typeAllowed = RpgItemType.Any,
-			RpgItemType type        = RpgItemType.ContSlot,
+			ItemType type        = ItemType.ContSlot,
+			ItemType typeAllowed = ItemType.Any,
 			int iItemCap = 1,
 			float fWtCap = 0.0f,
 			int iVolCap  = 0 )
 		{
-			RpgItemContainer contNew = new RpgItemContainer()
+			ItemContainer contNew = new ItemContainer()
 			{
-				m_strName         = strName,
+				Name         = strName,
 				m_itemTypeAllowed = typeAllowed,
 				m_iItemCap        = iItemCap,
 				m_iVolumeCap      = iVolCap,
 				m_fWeightCap      = fWtCap,
 			};
 
-			contNew.m_itemType = type;
+			contNew.Type = type;
 			contNew.InitCapacity();
 
 			if ( AddItem( contNew ) == ItemAddResult.Allowed )
@@ -393,23 +387,23 @@ namespace XenoRPGLib
 
 
 		//----------------------------------------------------------------------------
-		private RpgItem CreateNewItem( RpgItemType itemType )
+		private Item CreateNewItem( ItemType itemType )
 		{
-			RpgItem itemNew;
+			Item itemNew;
 
-			if ( ( itemType & RpgItemType.Container ) > 0 )
+			if ( ( itemType & ItemType.Container ) > 0 )
 			{
-				itemNew = new RpgItemContainer();
+				itemNew = new ItemContainer();
 			}
 			else
 			{
 				//if ( ( itemType & RpgItemType.Stackable ) > 0 )
 				//{
-				itemNew = new RpgItem();
+				itemNew = new Item();
 				//}
 			}
 
-			itemNew.m_itemType = itemType;
+			itemNew.Type = itemType;
 
 			return itemNew;
 		}
@@ -435,7 +429,7 @@ namespace XenoRPGLib
 			catch ( Exception e )
 			{
 				MessageBox.Show(
-					"Error loading inventory \"" + m_strName + "\":\n" +
+					"Error loading inventory \"" + Name + "\":\n" +
 					e.Message );
 				return false;
 			}
@@ -449,7 +443,7 @@ namespace XenoRPGLib
 
 
 		//----------------------------------------------------------------------------
-		private bool LoadItemFromXML_r( XmlReader xmlRead, RpgItem item, bool bRecurse = true )
+		private bool LoadItemFromXML_r( XmlReader xmlRead, Item item, bool bRecurse = true )
 		{
 			if ( xmlRead == null ) return false;
 
@@ -460,8 +454,8 @@ namespace XenoRPGLib
 			}
 
 			// End of XML file, or not a start element, or an empty element? Bail...
-			if ( xmlRead.EOF || 
-				!xmlRead.IsStartElement() || 
+			if ( xmlRead.EOF ||
+				!xmlRead.IsStartElement() ||
 				  xmlRead.IsEmptyElement )
 			{
 				return true; // Do nothing
@@ -469,27 +463,27 @@ namespace XenoRPGLib
 
 			//----- Get item type, type-specific properties, and create item object...
 			//----- Read general properties...
-			item.m_strName     = xmlRead.GetAttribute( "Name" );
-			item.m_iID         = Convert.ToUInt32( xmlRead.GetAttribute( "ID" ) );
-			item.m_iTemplateID = Convert.ToUInt32( xmlRead.GetAttribute( "TemplateID" ) );
-			item.m_itemType    = (RpgItemType)Convert.ToUInt32( xmlRead.GetAttribute( "Type" ), 16 );
-			item.m_fWeight     = Convert.ToSingle( xmlRead.GetAttribute( "Weight" ) );
-			item.m_bySizeW     = Convert.ToByte( xmlRead.GetAttribute( "SizeW" ) );
-			item.m_bySizeH     = Convert.ToByte( xmlRead.GetAttribute( "SizeH" ) );
-			item.m_bDisabled     = ( xmlRead.GetAttribute( "Locked" ) == "true" );
+			item.Name     = xmlRead.GetAttribute( "Name" );
+			item.Id         = Convert.ToUInt32( xmlRead.GetAttribute( "ID" ) );
+			//item.m_iTemplateID = Convert.ToUInt32( xmlRead.GetAttribute( "TemplateID" ) );
+			item.Type    = (ItemType)Convert.ToUInt32( xmlRead.GetAttribute( "Type" ), 16 );
+			item.Weight     = Convert.ToSingle( xmlRead.GetAttribute( "Weight" ) );
+			item.SizeW     = Convert.ToByte( xmlRead.GetAttribute( "SizeW" ) );
+			item.SizeH     = Convert.ToByte( xmlRead.GetAttribute( "SizeH" ) );
+			item.IsEnabled     = ( xmlRead.GetAttribute( "Locked" ) == "true" );
 
 			// ----- Container? Read container properties...
-			if ( ( item.m_itemType & RpgItemType.Container ) > 0  )
+			if ( ( item.Type & ItemType.Container ) > 0  )
 			{
-				RpgItemContainer container = (RpgItemContainer)item;
+				ItemContainer container = (ItemContainer)item;
 				container.m_iItemTotal   = Convert.ToInt32( xmlRead.GetAttribute( "ItemTotal" ) );
 				container.m_iItemCap     = Convert.ToInt32( xmlRead.GetAttribute( "ItemCap" ) );
 				container.m_fWeightTotal = Convert.ToSingle( xmlRead.GetAttribute( "WeightTotal" ) );
 				container.m_fWeightCap   = Convert.ToSingle( xmlRead.GetAttribute( "WeightCap" ) );
 				container.m_iVolumeTotal = Convert.ToInt32( xmlRead.GetAttribute( "VolumeTotal" ) );
 				container.m_iVolumeCap   = Convert.ToInt32( xmlRead.GetAttribute( "VolumeCap" ) );
-				container.m_itemTypeAllowed = 
-					(RpgItemType)Convert.ToUInt32( xmlRead.GetAttribute( "TypeAllowed" ), 16 );
+				container.m_itemTypeAllowed =
+					(ItemType)Convert.ToUInt32( xmlRead.GetAttribute( "TypeAllowed" ), 16 );
 
 				container.InitCapacity();
 
@@ -501,7 +495,7 @@ namespace XenoRPGLib
 						xmlRead.Read(); // Advance to child
 						if ( !xmlRead.IsEmptyElement && xmlRead.IsStartElement() )
 						{
-							RpgItemType type = (RpgItemType)Convert.ToUInt32( xmlRead.GetAttribute( "Type" ), 16 );
+							ItemType type = (ItemType)Convert.ToUInt32( xmlRead.GetAttribute( "Type" ), 16 );
 							container.m_listItems.Add( CreateNewItem( type ) );
 							LoadItemFromXML_r( xmlRead, container.m_listItems[ iChildIdx ], bRecurse );
 							iChildIdx++;
@@ -513,19 +507,19 @@ namespace XenoRPGLib
 			// ----- Normal item...
 			else // if ( ( itemParent.m_itemType & RpgItemType.Stackable ) > 0 ) //Don't really need the Stackable type
 			{
-				( (RpgItem)item ).m_iQuantity = 
+				( (Item)item ).Quantity =
 					Convert.ToUInt16( xmlRead.GetAttribute( "QuantityTotal" ) );
-				( (RpgItem)item ).m_iQuantityCap   = 
+				( (Item)item ).QuantityCap   =
 					Convert.ToUInt16( xmlRead.GetAttribute( "QuantityCap" ) );
 			}
 
 			return true;
 		} //LoadItem()
 
-		
+
 		//TODO: Load from SQLite
 
-		
+
 		//----------------------------------------------------------------------
 		public bool SaveToXML( string strFileName, bool bRecurse = true )
 		{
@@ -548,7 +542,7 @@ namespace XenoRPGLib
 			catch ( Exception e )
 			{
 				MessageBox.Show(
-					"Error saving inventory \"" + m_strName + "\":\n" +
+					"Error saving inventory \"" + Name + "\":\n" +
 					e.Message );
 				return false;
 			}
@@ -562,7 +556,7 @@ namespace XenoRPGLib
 
 
 		//----------------------------------------------------------------------
-		private void SaveItemToXML_r( XmlWriter xmlWrite, RpgItem itemInv, bool bRecurse = true )
+		private void SaveItemToXML_r( XmlWriter xmlWrite, Item itemInv, bool bRecurse = true )
 		{
 			if ( xmlWrite == null ) return;
 
@@ -576,7 +570,7 @@ namespace XenoRPGLib
 			}
 
 			//TODO: Don't really need named elements, but it clarifies things...
-			if ( itemInv is RpgItemContainer )
+			if ( itemInv is ItemContainer )
 			{
 				xmlWrite.WriteStartElement( "Container" );
 			}
@@ -586,19 +580,19 @@ namespace XenoRPGLib
 			}
 
 			// ----- Save item general properties...
-			xmlWrite.WriteAttributeString( "Name",       itemInv.m_strName );
-			xmlWrite.WriteAttributeString( "ID",         itemInv.m_iID.ToString() );
-			xmlWrite.WriteAttributeString( "TemplateID", itemInv.m_iTemplateID.ToString() );
-			xmlWrite.WriteAttributeString( "Type",       itemInv.m_itemType.ToString( "X" ) );
-			xmlWrite.WriteAttributeString( "Weight",     itemInv.m_fWeight.ToString() );
-			xmlWrite.WriteAttributeString( "SizeW",      itemInv.m_bySizeW.ToString() );
-			xmlWrite.WriteAttributeString( "SizeH",      itemInv.m_bySizeH.ToString() );
-			xmlWrite.WriteAttributeString( "Locked",     itemInv.m_bDisabled.ToString() );
+			xmlWrite.WriteAttributeString( "Name",       itemInv.Name );
+			xmlWrite.WriteAttributeString( "ID",         itemInv.Id.ToString() );
+			//xmlWrite.WriteAttributeString( "TemplateID", itemInv.m_iTemplateID.ToString() );
+			xmlWrite.WriteAttributeString( "Type",       itemInv.Type.ToString( "X" ) );
+			xmlWrite.WriteAttributeString( "Weight",     itemInv.Weight.ToString() );
+			xmlWrite.WriteAttributeString( "SizeW",      itemInv.SizeW.ToString() );
+			xmlWrite.WriteAttributeString( "SizeH",      itemInv.SizeH.ToString() );
+			xmlWrite.WriteAttributeString( "Locked",     itemInv.IsEnabled.ToString() );
 
 			// ----- Container? Save container properties...
-			if ( itemInv is RpgItemContainer )
+			if ( itemInv is ItemContainer )
 			{
-				RpgItemContainer cont = (RpgItemContainer)itemInv;
+				ItemContainer cont = (ItemContainer)itemInv;
 				xmlWrite.WriteAttributeString( "ItemTotal",   cont.m_iItemTotal.ToString() );
 				xmlWrite.WriteAttributeString( "ItemCap",     cont.m_iItemCap.ToString() );
 				xmlWrite.WriteAttributeString( "WeightTotal", cont.m_fWeightTotal.ToString() );
@@ -632,15 +626,15 @@ namespace XenoRPGLib
 			// ----- Save normal item properties...
 			else
 			{
-				RpgItem item = (RpgItem)itemInv;
-				xmlWrite.WriteAttributeString( "QuantityTotal", item.m_iQuantity.ToString() );
-				xmlWrite.WriteAttributeString( "QuantityCap",   item.m_iQuantityCap.ToString() );
+				Item item = (Item)itemInv;
+				xmlWrite.WriteAttributeString( "QuantityTotal", item.Quantity.ToString() );
+				xmlWrite.WriteAttributeString( "QuantityCap",   item.QuantityCap.ToString() );
 			}
 
 			xmlWrite.WriteFullEndElement();
 		} //SaveItem()
 
-		
+		/* TODO: MOVE TO MANAGER>>>>>
 		public bool LoadFromDB()
 		{
 			//TODO: Load from SQLite
@@ -649,7 +643,7 @@ namespace XenoRPGLib
 
 			//----- First nuke old inventory table...
 			string strSQL = "SELECT * FROM items_containers";
-			var sqlCmd = new SQLiteCommand( strSQL, FormMain.SQLConn );
+			var sqlCmd = new SQLiteCommand( strSQL, m_sqlConn );
 
 			var sqlReader = sqlCmd.ExecuteReader();
 			while ( sqlReader.Read() )
@@ -660,8 +654,9 @@ namespace XenoRPGLib
 
 			return true;
 		}
+		//<<<<< */
 
-
+		/*TODO: MOVE TO MANAGER>>>>>
 		public bool SaveToDB()
 		{
 			//var sqlConn = new SQLiteConnection( @"Data Source=InvTest.sqlite" );
@@ -670,25 +665,27 @@ namespace XenoRPGLib
 			//TODO: This is test code; prolly don't want to nuke the entire table
 			// if it contains all inventories for all characters
 			//----- First nuke old table...
-			string strSQL = 
+			string strSQL =
 				"DELETE FROM items_containers;" +
 				"DELETE FROM sqlite_sequence WHERE name='items_containers';";
-			var sqlCmd = new SQLiteCommand( strSQL, FormMain.SQLConn );
+			var sqlCmd = new SQLiteCommand( strSQL, m_sqlConn );
 			sqlCmd.ExecuteNonQuery();
 
 			//----- Now save out inventory...
-			SaveItemToDB_r( this, FormMain.SQLConn );
+			SaveItemToDB_r( this, m_sqlConn );
 
 			//sqlConn.Close();
 			return true; //TODO: Build some better error handling
 		}
+		//<<<<<*/
 
-		
+
+		/*TODO: MOVE TO MANAGER>>>>>
 		//----------------------------------------------------------------------
-		private void SaveItemToDB_r( 
-			RpgItem itemInv, 
-			SQLiteConnection sqlConn, 
-			uint iIDContainer = 0, 
+		private void SaveItemToDB_r(
+			RpgItem itemInv,
+			SQLiteConnection sqlConn,
+			uint iIDContainer = 0,
 			bool bRecurse = true )
 		{
 			uint iIDItem;
@@ -702,10 +699,10 @@ namespace XenoRPGLib
 			sqlCmd.ExecuteNonQuery();
 
 			//itemInv.m_iID.ToString()
- 			//TODO: write iIDOwner
+			//TODO: write iIDOwner
 			if ( itemInv is RpgItemContainer )
 			{
-				RpgItemContainer cont = (RpgItemContainer)itemInv; 
+				RpgItemContainer cont = (RpgItemContainer)itemInv;
 				if ( bRecurse )
 				{
 					for ( int iChildIdx = 0; iChildIdx < cont.m_listItems.Capacity; ++iChildIdx )
@@ -719,12 +716,13 @@ namespace XenoRPGLib
 				}
 			}
 		}
+		//<<<<< */
 	}//RpgContainer
 
 
 	//==========================================================================
 	// TODO: Create exo-container class? Probably no reason for it...
-	// Exo-container holds items externally. 
+	// Exo-container holds items externally.
 	// All held items are visible in 3D world; i.e. if held items don't need
 	// world visibility, use a standard container instead.
 	// Examples: Character body, belt w/pouches,weapon rack, coat hanger...
