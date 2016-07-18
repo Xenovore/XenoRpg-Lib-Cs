@@ -6,6 +6,8 @@ using System.IO;
 using System.Data;
 using System.Data.SQLite;
 using System.Reflection;
+using System.Windows.Forms;
+using System.Xml;
 using Dapper;
 using Xrpg.Core;
 
@@ -13,10 +15,10 @@ using Xrpg.Core;
 namespace XRpg
 {
 	//==========================================================================
-	// DataManager
+	// CharacterManager
 	// • Manages all data-related RPG tasks, e.g. loading stat info
 	//==========================================================================
-	public class DataManager
+	public class CharacterManager
 	{
 		// These are here to be able to cache results...
 		private Dictionary<int, CharacterBase> _dictCharactersAll;
@@ -37,13 +39,14 @@ namespace XRpg
 		}
 
 
-		public DataManager()
-		{
-		}
+        public CharacterManager()
+        {
+        }
 
 
-		//----------------------------------------------------------------------
-		public bool InitDB()
+        //TODO: MOVE OUT TO SEPARATE FILE
+        //----------------------------------------------------------------------
+        public bool InitDB()
 		{
 			//TO DO: Load DB filename from config...?
 			const string strDataPath = @"Data";
@@ -61,7 +64,7 @@ namespace XRpg
 			{
 				// ...Nope; create it.
 				SQLiteConnection.CreateFile( strDbFilePath );
-				bool bSuccess = CreateAllTables();
+				bool bSuccess = CreateCharacterTables();
 
 				if ( !bSuccess ) return false;
 			}
@@ -77,7 +80,9 @@ namespace XRpg
 			}
 			catch ( Exception e )
 			{
-				//TODO: provide something more meaningful
+				// Most likely issue here; sqlite.interop.dll is not where it's supposed to be.
+
+				throw new ApplicationException( e.Message, e);
 				return false;
 			}
 
@@ -85,8 +90,9 @@ namespace XRpg
 		}
 
 
-		//----------------------------------------------------------------------
-		bool CreateAllTables()
+		//TODO: MOVE OUT
+        //----------------------------------------------------------------------
+		bool CreateCharacterTables()
 		{
 			//TODO: Put SQL to create tables in here
 			return true;
@@ -108,24 +114,6 @@ namespace XRpg
 
 
 			return listChars;
-		}
-
-
-		//----------------------------------------------------------------------
-		public List<ItemTypeDef> LoadItemTypes()
-		{
-			Debug.Assert( _sqlConn != null );
-
-			const string sql =
-				@"SELECT
-					Name,
-					HexValue,
-					IconIdx
-				FROM ItemTypes";
-
-			List<ItemTypeDef> listItemTypes = _sqlConn.Query<ItemTypeDef>( sql ).ToList();
-
-			return listItemTypes;
 		}
 
 
@@ -263,7 +251,7 @@ namespace XRpg
 				catch ( Exception ex )
 				{
 					transact.Rollback();
-					throw;
+					throw new Exception( ex.Message );
 				}
 			}
 
@@ -321,30 +309,5 @@ namespace XRpg
 		{
 			_dictSkillsAll.Clear();
 		}
-
-		//----------------------------------------------------------------------
-		public List<Item> LoadAllItems()
-		{
-			Debug.Assert( _sqlConn != null );
-			List<Item> listItems;
-
-			string sql =
-				@"SELECT
-				*
-				FROM Items";
-
-			listItems = _sqlConn.Query<Item>( sql ).ToList();
-
-			//TODO: Container
-
-			//TODO: Effects
-
-			return listItems;
-		}
-
-
-
 	}
-
-
 }

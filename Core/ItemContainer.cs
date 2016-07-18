@@ -278,7 +278,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public bool RemoveItemByName( string strName, bool bRecurse = false )
+		public bool RemoveItemByName_r( string strName, bool bRecurse = false )
 		{
 			for ( int i = 0; i < m_listItems.Count(); ++i )
 			{
@@ -290,9 +290,7 @@ namespace XRpg
 				else if ( ( bRecurse ) && ( m_listItems[ i ] is ItemContainer ) )
 				{
 					bool bRemoved =
-						( (ItemContainer)m_listItems[ i ] ).RemoveItemByName(
-							strName,
-							bRecurse );
+						( (ItemContainer)m_listItems[ i ] ).RemoveItemByName_r( strName, bRecurse );
 					if ( bRemoved ) return bRemoved;
 				}
 
@@ -463,14 +461,14 @@ namespace XRpg
 
 			//----- Get item type, type-specific properties, and create item object...
 			//----- Read general properties...
-			item.Name     = xmlRead.GetAttribute( "Name" );
-			item.Id         = Convert.ToUInt32( xmlRead.GetAttribute( "ID" ) );
+			item.Name            = xmlRead.GetAttribute( "Name" );
+			item.Id              = Convert.ToUInt32( xmlRead.GetAttribute( "ID" ) );
 			//item.m_iTemplateID = Convert.ToUInt32( xmlRead.GetAttribute( "TemplateID" ) );
-			item.Type    = (ItemType)Convert.ToUInt32( xmlRead.GetAttribute( "Type" ), 16 );
-			item.Weight     = Convert.ToSingle( xmlRead.GetAttribute( "Weight" ) );
-			item.SizeW     = Convert.ToByte( xmlRead.GetAttribute( "SizeW" ) );
-			item.SizeH     = Convert.ToByte( xmlRead.GetAttribute( "SizeH" ) );
-			item.IsEnabled     = ( xmlRead.GetAttribute( "Locked" ) == "true" );
+			item.Type            = (ItemType)Convert.ToUInt32( xmlRead.GetAttribute( "Type" ), 16 );
+			item.Weight          = Convert.ToSingle( xmlRead.GetAttribute( "Weight" ) );
+			item.SizeW           = Convert.ToByte( xmlRead.GetAttribute( "SizeW" ) );
+			item.SizeH           = Convert.ToByte( xmlRead.GetAttribute( "SizeH" ) );
+			item.IsEnabled       = ( xmlRead.GetAttribute( "Locked" ) == "true" );
 
 			// ----- Container? Read container properties...
 			if ( ( item.Type & ItemType.Container ) > 0  )
@@ -517,7 +515,7 @@ namespace XRpg
 		} //LoadItem()
 
 
-		//TODO: Load from SQLite
+		//Data Manager will handle loading from SQLite
 
 
 		//----------------------------------------------------------------------

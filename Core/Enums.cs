@@ -15,6 +15,7 @@ namespace XRpg
 	// primarily used to determine what item types containers can accept.
 	// Also might determine the 2D icon, move/drop sound, etc....
 	//TODO: READ FROM DB
+	[Flags]
 	public enum ItemType: ulong // 64 bits
 	{
 		None          = 0x00000000, // On container, no restrictions
