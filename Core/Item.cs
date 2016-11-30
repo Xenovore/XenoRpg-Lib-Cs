@@ -9,28 +9,31 @@ namespace XRpg
 	public class Item
 	{
 		//TODO: Use auto props...?
-		// Match order in DB table...
-		public UInt32      Id          { get; set; }
-		public string      Name        { get; set; }
-		public string      Description { get; set; }
+		public UInt32      ParentContId { get; set; }
+		public UInt32      Id           { get; set; }
 
-		public ItemType    Type        { get; set; }
+		public string      Name         { get; set; }
+		public string      Description  { get; set; }
 
-		public float       Weight      { get; set; } // Kg; min = 0.01 (1 g)
-		public bool        IsEnabled   { get; set; } // Can player manipulate this item
-		public UInt16      Quantity    { get; set; } // Stack total
-		public UInt16      QuantityCap { get; set; } // Stack max capacity
-		public ItemLocation  Location  { get; set; } // In world, or local (on character: in backpack, pouch, etc.)
+		public ItemType    Type         { get; set; }
+
+		public float       Weight       { get; set; } // Kg; min = 0.01 (1 g)
+		public bool        IsEnabled    { get; set; } // Can player manipulate this item
+		public UInt16      Quantity     { get; set; } // Stack total
+		public UInt16      QuantityCap  { get; set; } // Stack max capacity
+		public ItemLocation  Location   { get; set; } // In world, or local (on character: in backpack, pouch, etc.)
 
 		//UI display stuff
-		public UInt16      IconIndex   { get; set; }
-		public byte        SizeW       { get; set; } // 2D tile size, e.g. 1x1 for smallest items
-		public byte        SizeH       { get; set; }
+		public UInt16      IconIndex    { get; set; }
+		public uint        SizeW        { get; set; } // 2D tile size, e.g. 1x1 for smallest items
+		public uint        SizeH        { get; set; }
 
 		//TODO: put back in Vector
-		public float       LocationX   { get; set; } // location (if local, z = layer depth)
-		public float       LocationY   { get; set; }
-		public float       LocationZ   { get; set; }
+		public float       LocationX    { get; set; } // location (if local, z = layer depth)
+		public float       LocationY    { get; set; }
+		public float       LocationZ    { get; set; }
+
+		public ItemContainer Container { get; set; }
 
 		// Sockets? Like Diablo 3, Path of Exiles, etc.
 
@@ -38,6 +41,7 @@ namespace XRpg
 
 		public List<Effect> m_listEffects;
 
+		//----------------------------------------------------------------------
 		public Item()
 		{
 		}

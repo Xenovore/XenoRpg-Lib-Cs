@@ -13,47 +13,29 @@ namespace XRpg
 	// Containers hold items internally; items are only visible when
 	// interacting with a container via UI
 
-	// Database Table: Container
-	public class ItemContainer: Item
+	// Database Table: ItemContainers_ext
+	public class ItemContainer
 	{
-		public List<Item> m_listItems;
+		public uint     ItemId      { get; set; } // Container is an item; reference to item in Items table
+		public uint     ItemTotal   { get; set; }
+		public uint     ItemCap     { get; set; } // Some containers can only hold a limited # of items, regardless of wt/vol
+		public uint     VolumeTotal { get; set; }
+		public uint     VolumeCap   { get; set; }
+		public float    WeightTotal { get; set; }
+		public float    WeightCap   { get; set; }
+		public ItemType TypeAllowed { get; set; } // Item types allowed in container
+		public bool     Locked      { get; set; }
+
+		public string   Name { get; set; } // Item.Name
+
+		public List<Item> _listItems;
+
 		//TODO: Use slot item type list? Would cut down on extra slots that are only used to check valid item type
 		//public List<RpgItemType> m_listTypeAllowed; // type allowed per slot
-
-		public int   m_iItemTotal;
-		public int   m_iItemCap;     // Some containers can only hold a limited # of items, regardless of wt/vol
-		public int   m_iVolumeTotal;
-		public int   m_iVolumeCap;
-		public float m_fWeightTotal;
-		public float m_fWeightCap;
-		public ItemType m_itemTypeAllowed; // Item types allowed in container
-
-		/*TODO: MOVE TO MANAGER>>>>>
-		//KEVTODO: If connection pooling required, add
-		// "Pooling=True;Max Pool Size=100;" to this...
-		static string strDBConnection = @"Data Source=InvTest.sqlite";
-		static SQLiteConnection m_sqlConn = new SQLiteConnection( strDBConnection );
-		public static SQLiteConnection SQLConn
-		{
-			get { return m_sqlConn; }
-		}
-		//<<<<<*/
 
 		//----------------------------------------------------------------------
 		public ItemContainer()
 		{
-			m_listItems = new List<Item>();
-			Type     = ItemType.Container;
-			m_iItemTotal   = 0;
-			m_iItemCap     = 0;
-			m_iVolumeTotal = 0;
-			m_iVolumeCap   = 0;
-			m_fWeightTotal = 0.0f;
-			m_fWeightCap   = 0.0f;
-			IsEnabled    = false;
-			SizeH      = 1;
-			SizeW      = 1;
-
 		}
 
 
@@ -68,7 +50,7 @@ namespace XRpg
 		public void InitCapacity()
 		{
 			// Should be faster to allocate space all at once vs. each time a new item is added
-			if ( m_iItemCap > 0 ) m_listItems.Capacity = m_iItemCap;
+			if ( ItemCap > 0 ) _listItems.Capacity = (int)ItemCap;
 		}
 
 
@@ -81,17 +63,17 @@ namespace XRpg
 			if ( item == null ) addRes = ItemAddResult.NullItem;
 
 			// Locked...?
-			else if ( IsEnabled ) addRes = ItemAddResult.Locked;
+			else if ( Locked ) addRes = ItemAddResult.Locked;
 
 			// Allowed item type...?
-			else if ( ( item.Type & m_itemTypeAllowed ) != item.Type )
+			else if ( ( item.Type & TypeAllowed ) != item.Type )
 			{
 				addRes = ItemAddResult.NotAllowed;
 			}
 
 			// Over capacity...?
-			else if ( ( m_iItemCap != 0 ) &&
-				( m_iItemTotal >= m_iItemCap ) )
+			else if ( ( ItemCap != 0 ) &&
+				( ItemTotal >= ItemCap ) )
 			{
 				addRes = ItemAddResult.Full;
 			}
@@ -101,15 +83,15 @@ namespace XRpg
 			// sure it's not exceeding weight cap. of parent containers
 
 			// Over weight...
-			else if ( ( m_fWeightCap > 0 ) &&
-				( item.Weight + m_fWeightTotal > m_fWeightCap ) )
+			else if ( ( WeightCap > 0 ) &&
+				( item.Weight + WeightTotal > WeightCap ) )
 			{
 				addRes = ItemAddResult.OverWeight;
 			}
 
 			// Over volume...?
-			else if ( ( m_iVolumeCap > 0 ) &&
-				( ( item.SizeH * item.SizeW ) + m_iVolumeTotal > m_iVolumeCap ) )
+			else if ( ( VolumeCap > 0 ) &&
+				( ( item.SizeH * item.SizeW ) + VolumeTotal > VolumeCap ) )
 			{
 				addRes = ItemAddResult.OverVolume;
 			}
@@ -151,10 +133,15 @@ namespace XRpg
 					strMsg = "Cannot add '{0}'. Container '{1}' is locked.";
 					break;
 
-				default: //Full
+				case ItemAddResult.Full:
 					strMsg = "Cannot add '{0}'. Container '{1}' is full.";
 					break;
+
+				default: //Allowed
+					strMsg = "";
+					break;
 			}
+
 			return string.Format( strMsg, strNameAddItem, this.Name );
 		}
 
@@ -180,11 +167,11 @@ namespace XRpg
 				return addRes;
 			}
 
-			m_fWeightTotal += item.Weight;
-			m_iVolumeTotal += item.SizeW * item.SizeH;
+			WeightTotal += item.Weight;
+			VolumeTotal += ( item.SizeW * item.SizeH );
 
-			m_listItems.Add( item );
-			m_iItemTotal++;
+			_listItems.Add( item );
+			ItemTotal++;
 
 			return ItemAddResult.Allowed;
 		}
@@ -194,7 +181,7 @@ namespace XRpg
 
 		//TODO: AddItemByID()
 
-
+/* BROKEN STUFF DOWN BELOW
 		//----------------------------------------------------------------------
 		public bool AddItemToContainerByName( string strName, bool bRecurse = false )
 		{
@@ -204,19 +191,19 @@ namespace XRpg
 			//TODO: Check item type; can it be added to this container type?
 			//TODO: Check for existing stacks; add to stacked item when possible
 
-			for ( int i = 0; i < m_listItems.Count(); ++i )
+			for ( int i = 0; i < _listItems.Count(); ++i )
 			{
-				string strItemName = m_listItems[ i ].Name;
+				string strItemName = _listItems[ i ].Name;
 				if ( strName == strItemName )
 				{
 					//TODO: ADD not remove
-					m_listItems.RemoveAt( i );
+					_listItems.RemoveAt( i );
 					return true;
 				}
-				else if ( bRecurse && m_listItems[ i ] is ItemContainer )
+				else if ( bRecurse && _listItems[ i ] is ItemContainer )
 				{
 					bool bAdded =
-						( (ItemContainer)m_listItems[ i ] ).AddItemToContainerByName(
+						( (ItemContainer)_listItems[ i ] ).AddItemToContainerByName(
 							strName,
 							bRecurse );
 					if ( bAdded ) return bAdded;
@@ -230,7 +217,7 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		public bool Clear()
 		{
-			m_listItems.Clear(); //TODO C++: Need to recurse and clear all child containers
+			_listItems.Clear(); //TODO C++: Need to recurse and clear all child containers
 			return true;
 		}
 
@@ -239,16 +226,16 @@ namespace XRpg
 		public bool RemoveItem( int i )
 		{
 			Debug.Assert(
-				( i >= 0 ) && ( i < m_listItems.Count ),
+				( i >= 0 ) && ( i < _listItems.Count ),
 				string.Format( "Item index {0} out of bounds.", i ) );
 
 			// Save weight/vol and subtract later only if remove succeeds...
-			float fItemWt = m_listItems[ i ].Weight;
-			int iItemSize = m_listItems[ i ].SizeW * m_listItems[ i ].SizeH;
+			float fItemWt = _listItems[ i ].Weight;
+			uint iItemSize = _listItems[ i ].SizeW * _listItems[ i ].SizeH;
 
 			try
 			{
-				m_listItems.RemoveAt( i );
+				_listItems.RemoveAt( i );
 			}
 			catch
 			{
@@ -257,8 +244,8 @@ namespace XRpg
 				return false;
 			}
 
-			m_fWeightTotal -= fItemWt;
-			m_iVolumeTotal -= iItemSize;
+			WeightTotal -= fItemWt;
+			VolumeTotal -= iItemSize;
 
 			return true;
 		}
@@ -267,12 +254,12 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		public bool RemoveItemByName( string strName )
 		{
-			Item itemTmp = m_listItems.Find( n => strName == Name );
+			Item itemTmp = _listItems.Find( n => strName == Name );
 			if ( itemTmp == null ) return false; // Not found
 
-			m_iVolumeTotal -= itemTmp.SizeW * itemTmp.SizeH;
-			m_fWeightTotal -= itemTmp.Weight;
-			m_listItems.Remove( itemTmp );
+			VolumeTotal -= itemTmp.SizeW * itemTmp.SizeH;
+			WeightTotal -= itemTmp.Weight;
+			_listItems.Remove( itemTmp );
 			return true;
 		}
 
@@ -280,17 +267,17 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		public bool RemoveItemByName_r( string strName, bool bRecurse = false )
 		{
-			for ( int i = 0; i < m_listItems.Count(); ++i )
+			for ( int i = 0; i < _listItems.Count(); ++i )
 			{
-				string strItemName = m_listItems[ i ].Name;
+				string strItemName = _listItems[ i ].Name;
 				if ( strName == strItemName )
 				{
 					return RemoveItem( i );
 				}
-				else if ( ( bRecurse ) && ( m_listItems[ i ] is ItemContainer ) )
+				else if ( ( bRecurse ) && ( _listItems[ i ] is ItemContainer ) )
 				{
 					bool bRemoved =
-						( (ItemContainer)m_listItems[ i ] ).RemoveItemByName_r( strName, bRecurse );
+						( (ItemContainer)_listItems[ i ] ).RemoveItemByName_r( strName, bRecurse );
 					if ( bRemoved ) return bRemoved;
 				}
 
@@ -307,14 +294,14 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		public Item FindItemByName( string strName, bool bRecurse = false )
 		{
-			for ( int i = 0; i < m_listItems.Count(); ++i )
+			for ( int i = 0; i < _listItems.Count(); ++i )
 			{
-				string strItemName = m_listItems[ i ].Name;
-				if ( strName == strItemName ) return m_listItems[ i ];
-				else if ( ( bRecurse ) && ( m_listItems[ i ] is ItemContainer ) )
+				string strItemName = _listItems[ i ].Name;
+				if ( strName == strItemName ) return _listItems[ i ];
+				else if ( ( bRecurse ) && ( _listItems[ i ] is ItemContainer ) )
 				{
 					Item item =
-						( (ItemContainer)m_listItems[ i ] ).FindItemByName(
+						( (ItemContainer)_listItems[ i ] ).FindItemByName(
 							strName,
 							bRecurse );
 					if ( item != null ) return item;
@@ -359,17 +346,17 @@ namespace XRpg
 			string strName,
 			ItemType type        = ItemType.ContSlot,
 			ItemType typeAllowed = ItemType.Any,
-			int iItemCap = 1,
+			uint iItemCap = 1,
 			float fWtCap = 0.0f,
-			int iVolCap  = 0 )
+			uint iVolCap  = 0 )
 		{
 			ItemContainer contNew = new ItemContainer()
 			{
-				Name         = strName,
-				m_itemTypeAllowed = typeAllowed,
-				m_iItemCap        = iItemCap,
-				m_iVolumeCap      = iVolCap,
-				m_fWeightCap      = fWtCap,
+				Name        = strName,
+				TypeAllowed = typeAllowed,
+				ItemCap     = iItemCap,
+				VolumeCap   = iVolCap,
+				WeightCap   = fWtCap,
 			};
 
 			contNew.Type = type;
@@ -407,6 +394,7 @@ namespace XRpg
 		}
 
 
+		//TODO: Move to InventoryManager?
 		//----------------------------------------------------------------------
 		//	Load( <xmlfile>, <recurse> )
 		//	• Load inventory from <xmlfile> into this container
@@ -474,13 +462,13 @@ namespace XRpg
 			if ( ( item.Type & ItemType.Container ) > 0  )
 			{
 				ItemContainer container = (ItemContainer)item;
-				container.m_iItemTotal   = Convert.ToInt32( xmlRead.GetAttribute( "ItemTotal" ) );
-				container.m_iItemCap     = Convert.ToInt32( xmlRead.GetAttribute( "ItemCap" ) );
-				container.m_fWeightTotal = Convert.ToSingle( xmlRead.GetAttribute( "WeightTotal" ) );
-				container.m_fWeightCap   = Convert.ToSingle( xmlRead.GetAttribute( "WeightCap" ) );
-				container.m_iVolumeTotal = Convert.ToInt32( xmlRead.GetAttribute( "VolumeTotal" ) );
-				container.m_iVolumeCap   = Convert.ToInt32( xmlRead.GetAttribute( "VolumeCap" ) );
-				container.m_itemTypeAllowed =
+				container._iItemTotal   = Convert.ToInt32( xmlRead.GetAttribute( "ItemTotal" ) );
+				container.ItemCap     = Convert.ToInt32( xmlRead.GetAttribute( "ItemCap" ) );
+				container._fWeightTotal = Convert.ToSingle( xmlRead.GetAttribute( "WeightTotal" ) );
+				container._fWeightCap   = Convert.ToSingle( xmlRead.GetAttribute( "WeightCap" ) );
+				container._iVolumeTotal = Convert.ToInt32( xmlRead.GetAttribute( "VolumeTotal" ) );
+				container._iVolumeCap   = Convert.ToInt32( xmlRead.GetAttribute( "VolumeCap" ) );
+				container._itemTypeAllowed =
 					(ItemType)Convert.ToUInt32( xmlRead.GetAttribute( "TypeAllowed" ), 16 );
 
 				container.InitCapacity();
@@ -488,14 +476,14 @@ namespace XRpg
 				if ( bRecurse )
 				{
 					int iChildIdx = 0;
-					while ( iChildIdx < container.m_iItemTotal )
+					while ( iChildIdx < container._iItemTotal )
 					{
 						xmlRead.Read(); // Advance to child
 						if ( !xmlRead.IsEmptyElement && xmlRead.IsStartElement() )
 						{
 							ItemType type = (ItemType)Convert.ToUInt32( xmlRead.GetAttribute( "Type" ), 16 );
-							container.m_listItems.Add( CreateNewItem( type ) );
-							LoadItemFromXML_r( xmlRead, container.m_listItems[ iChildIdx ], bRecurse );
+							container._listItems.Add( CreateNewItem( type ) );
+							LoadItemFromXML_r( xmlRead, container._listItems[ iChildIdx ], bRecurse );
 							iChildIdx++;
 						}
 					}
@@ -591,25 +579,25 @@ namespace XRpg
 			if ( itemInv is ItemContainer )
 			{
 				ItemContainer cont = (ItemContainer)itemInv;
-				xmlWrite.WriteAttributeString( "ItemTotal",   cont.m_iItemTotal.ToString() );
-				xmlWrite.WriteAttributeString( "ItemCap",     cont.m_iItemCap.ToString() );
-				xmlWrite.WriteAttributeString( "WeightTotal", cont.m_fWeightTotal.ToString() );
-				xmlWrite.WriteAttributeString( "WeightCap",   cont.m_fWeightCap.ToString() );
-				xmlWrite.WriteAttributeString( "VolTotal",    cont.m_iVolumeTotal.ToString() );
-				xmlWrite.WriteAttributeString( "VolCap",      cont.m_iVolumeCap.ToString() );
-				xmlWrite.WriteAttributeString( "TypeAllowed", cont.m_itemTypeAllowed.ToString( "X" ) );
+				xmlWrite.WriteAttributeString( "ItemTotal",   cont._iItemTotal.ToString() );
+				xmlWrite.WriteAttributeString( "ItemCap",     cont.ItemCap.ToString() );
+				xmlWrite.WriteAttributeString( "WeightTotal", cont._fWeightTotal.ToString() );
+				xmlWrite.WriteAttributeString( "WeightCap",   cont._fWeightCap.ToString() );
+				xmlWrite.WriteAttributeString( "VolTotal",    cont._iVolumeTotal.ToString() );
+				xmlWrite.WriteAttributeString( "VolCap",      cont._iVolumeCap.ToString() );
+				xmlWrite.WriteAttributeString( "TypeAllowed", cont._itemTypeAllowed.ToString( "X" ) );
 
 				//int iChildIdx = 0;
 				if ( bRecurse )
 				{
-					for ( int iChildIdx = 0; iChildIdx < cont.m_listItems.Capacity; ++iChildIdx )
+					for ( int iChildIdx = 0; iChildIdx < cont._listItems.Capacity; ++iChildIdx )
 					//while ( iChildIdx < cont.m_listItems.Capacity )
 					{
-						if ( iChildIdx < cont.m_listItems.Count )
+						if ( iChildIdx < cont._listItems.Count )
 						{
 							SaveItemToXML_r(
 								xmlWrite,
-								cont.m_listItems[ iChildIdx ],
+								cont._listItems[ iChildIdx ],
 								bRecurse );
 						}
 						else

@@ -34,8 +34,8 @@
     <Prefer32Bit>false</Prefer32Bit>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Dapper, Version=1.40.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\XenoRpg Editor\packages\Dapper.1.42\lib\net45\Dapper.dll</HintPath>
+    <Reference Include="Dapper, Version=1.50.2.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\XenoRpg Editor\packages\Dapper.1.50.2\lib\net451\Dapper.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />
@@ -53,7 +53,9 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionManager.cs" />
+    <Compile Include="Core\Profession.cs" />
     <Compile Include="Core\Recipe.cs" />
+    <Compile Include="Core\Species.cs" />
     <Compile Include="Core\Spell.cs" />
     <Compile Include="Core\StatType.cs" />
     <Compile Include="CharacterManager.cs" />

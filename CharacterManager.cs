@@ -9,8 +9,6 @@ using System.Reflection;
 using System.Windows.Forms;
 using System.Xml;
 using Dapper;
-using Xrpg.Core;
-
 
 namespace XRpg
 {
@@ -23,9 +21,9 @@ namespace XRpg
 		// These are here to be able to cache results...
 		private Dictionary<int, CharacterBase> _dictCharactersAll;
 
-		private Dictionary<int, StatBase> _dictAttribsAll;
-		private Dictionary<int, StatBase> _dictSkillsAll;
-		private Dictionary<int, StatBase> _dictSpecialStatsAll;
+		private Dictionary<int, Stat> _dictAttribsAll;
+		private Dictionary<int, Stat> _dictSkillsAll;
+		private Dictionary<int, Stat> _dictSpecialStatsAll;
 
 		const float c_fAttrLvlBase = 50;
 		const float c_fAttrLvlCap = 100;
@@ -39,14 +37,14 @@ namespace XRpg
 		}
 
 
-        public CharacterManager()
-        {
-        }
+		public CharacterManager()
+		{
+		}
 
 
-        //TODO: MOVE OUT TO SEPARATE FILE
-        //----------------------------------------------------------------------
-        public bool InitDB()
+		//TODO: MOVE OUT TO SEPARATE FILE
+		//----------------------------------------------------------------------
+		public bool InitDB()
 		{
 			//TO DO: Load DB filename from config...?
 			const string strDataPath = @"Data";
@@ -70,8 +68,7 @@ namespace XRpg
 			}
 
 			//NOTE: If connection pooling required, add "Pooling=True;Max Pool Size=100;"...
-			string strDBSource =
-				string.Format( @"Data Source={0};version=3;", strDbFilePath );
+			string strDBSource = $@"Data Source={strDbFilePath};version=3;";
 
 			try
 			{
@@ -91,7 +88,7 @@ namespace XRpg
 
 
 		//TODO: MOVE OUT
-        //----------------------------------------------------------------------
+		//----------------------------------------------------------------------
 		bool CreateCharacterTables()
 		{
 			//TODO: Put SQL to create tables in here
@@ -100,7 +97,24 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public List<CharacterBase> LoadCharacters( CharacterType charType = CharacterType.Player )
+		public CharacterBase LoadCharacterById( uint Id )
+		{
+			Debug.Assert( _sqlConn != null );
+
+			const string sql =
+				@"SELECT * FROM Characters
+				WHERE Characters.Id = @charId";
+
+			CharacterBase character = _sqlConn.Query<CharacterBase>(
+				sql,
+				new { @charId = Id } ).FirstOrDefault();
+
+			return character;
+		}
+
+
+		//----------------------------------------------------------------------
+		public List<CharacterBase> LoadAllCharacters( CharacterType charType = CharacterType.Player )
 		{
 			Debug.Assert( _sqlConn != null );
 
@@ -118,7 +132,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public  Dictionary<int, StatBase> LoadAllStats()
+		public  Dictionary<int, Stat> LoadAllStats()
 		{
 			const string sqlStats =
 				@"SELECT
@@ -126,7 +140,7 @@ namespace XRpg
 				FROM StatsBase";
 				//WHERE StatsBase.Type IN @types";
 
-			var dictStats = _sqlConn.Query<StatBase>( sqlStats )
+			var dictStats = _sqlConn.Query<Stat>( sqlStats )
 				.ToDictionary( stat => stat.Id, stat => stat );
 
 			//TODO: REMOVE? Attribute modifiers would probably be on a per-character basis
@@ -135,7 +149,7 @@ namespace XRpg
 				@"SELECT
 					StatsBase.Id
 				FROM StatsBase
-				JOIN StatModifiers AS mods ON mods.StatId = StatsBase.Id
+				JOIN StatModifiers_map AS mods ON mods.StatId = StatsBase.Id
 				WHERE mods.TargetStatId = @statId";
 
 			//TODO: Fetch modifiers individually for now...
@@ -172,30 +186,41 @@ namespace XRpg
 		}
 
 
-		/*OLD>>>>>
 		//----------------------------------------------------------------------
-		public Dictionary<int, StatBase> LoadMasterAttribs( bool reload = false )
+		// LoadCharacterStats()
+		// • id = character ID
+		// • type = physical, mental, etc.
+		//----------------------------------------------------------------------
+		public List<Stat> LoadCharacterStats( uint id, uint typeId = 0 )
 		{
-			if ( !reload && _dictAttribsAll != null && _dictAttribsAll.Any() )
-			{
-				return _dictAttribsAll;
-			}
+			const string sql =
+				@"SELECT
+					StatsBase.Id,
+					StatsBase.Name,
+					StatsBase.Abbr,
+					StatsBase.Description,
+					CharacterStats.Level,
+					CharacterStats.XpToNextLvl
+				FROM CharacterStats
+				JOIN StatsBase ON StatsBase.Id = CharacterStats.StatId
+				JOIN StatTypes ON StatTypes.Id = StatsBase.Type
+				AND CharacterStats.CharacterId = @charId";
 
-			_dictAttribsAll = LoadStatsAll(
-				new List<int>
+			var listStats = _sqlConn.Query<Stat>(
+				sql,
+				new
 				{
-					(int)StatType.AttribPhysical,
-					(int)StatType.AttribMental,
-					(int)StatType.AttribSpecial
-				} );
+					@charId = id,
+				}  )
+				.ToList();
 
-			return _dictAttribsAll;
+			return listStats;
 		}
-		//<<<<< */
 
-		//TODO: SAVE ALL STATS
+
+		//TODO: UPDATE TO SAVE ALL STATS
 		//----------------------------------------------------------------------
-		public int SaveMasterAttribs( List<StatBase> listNewAttribs )
+		public int SaveMasterAttribs( List<Stat> listNewAttribs )
 		{
 			Debug.Assert( listNewAttribs != null );
 
@@ -259,44 +284,6 @@ namespace XRpg
 		}
 
 
-		/*OLD>>>>>
-		//----------------------------------------------------------------------
-		public Dictionary<int, StatBase> LoadMasterSkills( bool reload = false )
-		{
-			if ( !reload && _dictSkillsAll != null && _dictSkillsAll.Any() )
-			{
-				return _dictSkillsAll;
-			}
-
-			_dictSkillsAll = LoadStatsAll(
-				new List<int>
-				{
-					(int)StatType.Skill,
-					(int)StatType.Resistance,
-				} );
-
-			return _dictSkillsAll;
-		}
-
-
-		//----------------------------------------------------------------------
-		public Dictionary<int, StatBase> LoadMasterMiscStats( bool reload = false )
-		{
-			if ( !reload && _dictSpecialStatsAll != null && _dictSpecialStatsAll.Any() )
-			{
-				return _dictSpecialStatsAll;
-			}
-
-			_dictSpecialStatsAll = LoadStatsAll(
-				new List<int>
-				{
-					(int)StatType.Skill,
-				} );
-
-			return _dictSpecialStatsAll;
-		}
-		//<<<<< */
-
 		//----------------------------------------------------------------------
 		public void ClearAttribs()
 		{
@@ -308,6 +295,45 @@ namespace XRpg
 		public void ClearSkills()
 		{
 			_dictSkillsAll.Clear();
+		}
+
+
+		//----------------------------------------------------------------------
+		public List<Species> GetSpeciesList()
+		{
+			const string sql =
+				@"SELECT
+				*
+				FROM Species";
+
+			var list = _sqlConn.Query<Species>( sql ).ToList();
+			return list;
+		}
+
+
+		//----------------------------------------------------------------------
+		public List<Profession> GetProfessionList()
+		{
+			const string sql =
+				@"SELECT
+				*
+				FROM Professions";
+
+			var list = _sqlConn.Query<Profession>( sql ).ToList();
+			return list;
+		}
+
+
+		//----------------------------------------------------------------------
+		public List<StatType> GetStatTypeList()
+		{
+			const string sql =
+				@"SELECT
+				*
+				FROM StatTypes";
+
+			var list = _sqlConn.Query<StatType>( sql ).ToList();
+			return list;
 		}
 	}
 }

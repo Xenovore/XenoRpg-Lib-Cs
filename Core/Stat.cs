@@ -6,17 +6,18 @@ using System.Text;
 namespace XRpg
 {
 	//==========================================================================
-	// StatBase
+	// Stat
 	// • Global data applicable to all stats for all characters;
 	//   e.g. stat names, descriptions, types, etc.
 	// • All attribute and skill info is created in separate lists and
 	//   referenced by the character Stat lists
 	//==========================================================================
-	public class StatBase
+	public class Stat
 	{
 		public int          Id           { get; set; }
 		public string       Name         { get; set; }
 		public string       Abbr         { get; set; } // Abbreviation, e.g. ST = Strength, IT = Intuition, IG = Intelligence
+		public string       Description  { get; set; } // Last here so it's last in gridview
 		public StatTypeEnum Type         { get; set; }
 		public float        LevelMin     { get; set; } // Level range min.; can't go below this*
 		public float        LevelBaseLo  { get; set; } // Base level low end*
@@ -27,27 +28,17 @@ namespace XRpg
 		public int          ApplyType    { get; set; } // 1 = score, 2 = level
 		public int          ApplyHow     { get; set; } // 1 = add,  2= multiply
 		public float        ApplyPercent { get; set; } // Addl. scalar; how much to apply
-		public string       Description  { get; set; } // Last here so it's last in gridview
 
 		public List<int> listModIds  { get; set; } // What stats modifies this one?
-	}
+	
+		// * Level range min/max: This is before modifiers
+		// * Level ranges:
+		//   LevelMin - LevelBaseLo = penalty
+		//   LevelBaseLo - LevelBaseHi = no penalty/bonus
+		//   LevelBaseHi - LevelMax = bonus
 
-	// * Level range min/max: This is before modifiers
-	// * Level ranges:
-	//   LevelMin - LevelBaseLo = penalty
-	//   LevelBaseLo - LevelBaseHi = no penalty/bonus
-	//   LevelBaseHi - LevelMax = bonus
-
-
-	//==========================================================================
-	// Stat
-	// • Attributes, skills, etc.
-	//==========================================================================
-	public class Stat
-	{
-		private StatBase _statInfo;
-
-		public int   StatId      { get; set; }
+		// CHARACTER SPECIFIC
+		//public int   StatId      { get; set; }
 		public float Level       { get; set; } // Unmodified level
 		public float XpToNextLvl { get; set; } // Total XP towards next level
 
@@ -56,9 +47,10 @@ namespace XRpg
 		//public float m_fScoreActual;
 
 		//TODO: Remove; probably not needed here; see Stat.listModIds
-		public List<Stat> m_listAddlMods; // e.g. what attributes apply to a skill
+		//public List<Stat> m_listAddlMods; // e.g. what attributes apply to a skill
 
 		// ----- Properties are necessary for Dapper and C# DataGridView to work
+		/*
 		public string Name
 		{
 			get { return _statInfo.Name; }
@@ -76,7 +68,7 @@ namespace XRpg
 			get { return _statInfo.Description; }
 			set { _statInfo.Description = value; }
 		}
-
+		*/
 		public float ScoreTotal
 		{
 			get { return GetScore(); }
@@ -89,8 +81,8 @@ namespace XRpg
 			// Score determination: ( Level - LevelBase ) * ScoreBase
 			_fLevelTotal = Level + ( 0 ); //TODO: m_listAddlMods
 			_fScoreTotal =
-				( _fLevelTotal - _statInfo.LevelBaseLo ) *
-				_statInfo.ScoreBase;
+				( _fLevelTotal - LevelBaseLo ) *
+				ScoreBase;
 
 			_fScoreTotal = (float)Math.Floor( _fScoreTotal );
 
@@ -128,8 +120,8 @@ namespace XRpg
 			// Is the current level below the max?
 			// Is there enough XP to spend?
 			return
-				( ( Level < _statInfo.LevelMax ) &&
-			      ( XpToNextLvl >= _statInfo.XPCost * ( Level + 1 ) ) );
+				( ( Level < LevelMax ) &&
+			      ( XpToNextLvl >= XPCost * ( Level + 1 ) ) );
 		}
 
 
@@ -139,7 +131,7 @@ namespace XRpg
 			if ( !CanLevelUp() ) return false;
 
 			// New level requires spending ( XP Cost per Level * Next Level )
-			XpToNextLvl -= _statInfo.XPCost * ( Level + 1 ); // Remove XP
+			XpToNextLvl -= XPCost * ( Level + 1 ); // Remove XP
 			Level++; // Increase level
 
 			return true;
@@ -150,7 +142,7 @@ namespace XRpg
 		public bool AddXP( float fNewXP )
 		{
 			// If already at max level, no more XP...
-			if ( Level == _statInfo.LevelMax ) return false;
+			if ( Level >= LevelMax ) return false;
 
 			XpToNextLvl += fNewXP;
 
