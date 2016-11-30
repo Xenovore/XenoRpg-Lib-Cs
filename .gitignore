@@ -1,0 +1,15 @@
+*.suo
+*.bak
+*.obj
+*.dll
+*.pdb
+.hg/
+.hg*
+*.config
+[Oo]bj/
+[Rr]elease/
+[Pp]ackages/
+[Pp]roperties/
+
+
+
