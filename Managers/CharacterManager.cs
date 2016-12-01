@@ -47,7 +47,7 @@ namespace XRpg
 		public bool InitDB()
 		{
 			//TO DO: Load DB filename from config...?
-			const string strDataPath = @"Data";
+			const string strDataPath = @".\Data";
 			const string strDbFile = "xrpg.sqlite";
 
 			if ( !Directory.Exists( strDataPath ) )
