@@ -46,7 +46,7 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		public bool InitDB()
 		{
-			//TO DO: Load DB filename from config...?
+			//TODO: Load DB filename from config...?
 			const string strDataPath = @".\Data";
 			const string strDbFile = "xrpg.sqlite";
 
@@ -132,7 +132,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public  Dictionary<int, Stat> LoadAllStats()
+		public  Dictionary<int, StatBase> LoadAllStats()
 		{
 			const string sqlStats =
 				@"SELECT
@@ -140,7 +140,7 @@ namespace XRpg
 				FROM StatsBase";
 				//WHERE StatsBase.Type IN @types";
 
-			var dictStats = _sqlConn.Query<Stat>( sqlStats )
+			var dictStats = _sqlConn.Query<StatBase>( sqlStats )
 				.ToDictionary( stat => stat.Id, stat => stat );
 
 			//TODO: REMOVE? Attribute modifiers would probably be on a per-character basis
@@ -199,6 +199,7 @@ namespace XRpg
 					StatsBase.Name,
 					StatsBase.Abbr,
 					StatsBase.Description,
+					StatsBase.Type,
 					CharacterStats.Level,
 					CharacterStats.XpToNextLvl
 				FROM CharacterStats

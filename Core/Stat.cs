@@ -7,18 +7,42 @@ namespace XRpg
 {
 	//==========================================================================
 	// Stat
-	// • Global data applicable to all stats for all characters;
-	//   e.g. stat names, descriptions, types, etc.
-	// • All attribute and skill info is created in separate lists and
-	//   referenced by the character Stat lists
+	// • Primary data needed to load character stats
 	//==========================================================================
 	public class Stat
 	{
+		// StatBase table...
 		public int          Id           { get; set; }
 		public string       Name         { get; set; }
 		public string       Abbr         { get; set; } // Abbreviation, e.g. ST = Strength, IT = Intuition, IG = Intelligence
 		public string       Description  { get; set; } // Last here so it's last in gridview
 		public StatTypeEnum Type         { get; set; }
+
+		// CharacterStats table...
+		public float        Level        { get; set; } // Unmodified level
+		public float        XpToNextLvl  { get; set; } // Total XP towards next level
+
+		// Calculated...
+		protected float _fLevelTotal;   // Total modified level
+		protected float _fScoreTotal;   // Score multiplied by level + modifiers
+		//public float m_fScoreActual;
+
+		//TODO: Remove; probably not needed here; see Stat.listModIds
+		//public List<Stat> m_listAddlMods; // e.g. what attributes apply to a skill
+
+	};
+
+
+	//==========================================================================
+	// StatBase
+	// • Global data applicable to all stats for all characters;
+	//   e.g. stat names, descriptions, types, etc.
+	// • All attribute and skill info is created in separate lists and
+	//   referenced by the character Stat lists
+	//==========================================================================
+	public class StatBase: Stat
+	{
+		// StatBase table...
 		public float        LevelMin     { get; set; } // Level range min.; can't go below this*
 		public float        LevelBaseLo  { get; set; } // Base level low end*
 		public float        LevelBaseHi  { get; set; } // Base level high end*
@@ -37,43 +61,11 @@ namespace XRpg
 		//   LevelBaseLo - LevelBaseHi = no penalty/bonus
 		//   LevelBaseHi - LevelMax = bonus
 
-		// CHARACTER SPECIFIC
-		//public int   StatId      { get; set; }
-		public float Level       { get; set; } // Unmodified level
-		public float XpToNextLvl { get; set; } // Total XP towards next level
-
-		private float _fLevelTotal;   // Calculated; total modified level
-		private float _fScoreTotal;   // Score multiplied by level + modifiers
-		//public float m_fScoreActual;
-
-		//TODO: Remove; probably not needed here; see Stat.listModIds
-		//public List<Stat> m_listAddlMods; // e.g. what attributes apply to a skill
-
-		// ----- Properties are necessary for Dapper and C# DataGridView to work
-		/*
-		public string Name
-		{
-			get { return _statInfo.Name; }
-			set { _statInfo.Name = value; }
-		}
-
-		public string Abbr
-		{
-			get { return _statInfo.Abbr; }
-			set { _statInfo.Abbr = value; }
-		}
-
-		public string Desc
-		{
-			get { return _statInfo.Description; }
-			set { _statInfo.Description = value; }
-		}
-		*/
+		//TODO: MIGHT NEED THESE IN StatCharacter
 		public float ScoreTotal
 		{
 			get { return GetScore(); }
 		}
-
 
 
 		private float GetScore()
