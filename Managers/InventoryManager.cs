@@ -143,9 +143,8 @@ namespace XRpg
 					-- LIMIT is on total results, not nested level
 				)
 				SELECT
-					--charItems.level AS NestLevel,
+					charItems.level AS NestLevel,
 					charItems.parentContId,
-					--charItems.itemId,
 					Items.*,
 					ItemContainers_ext.* FROM charItems
 				JOIN items ON items.id = charItems.itemId

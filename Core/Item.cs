@@ -9,6 +9,7 @@ namespace XRpg
 	public class Item
 	{
 		//TODO: Use auto props...?
+		public UInt32      NestLevel    { get; set; }
 		public UInt32      ParentContId { get; set; }
 		public UInt32      Id           { get; set; }
 
