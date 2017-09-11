@@ -30,7 +30,6 @@ namespace XRpg
 
 		static SQLiteConnection _sqlConn;
 
-		//TODO: probably don't want a public SQL connection... remove
 		static SQLiteConnection SQLConn
 		{
 			get { return _sqlConn; }
@@ -80,7 +79,6 @@ namespace XRpg
 				// Most likely issue here; sqlite.interop.dll is not where it's supposed to be.
 
 				throw new ApplicationException( e.Message, e);
-				return false;
 			}
 
 			return true;
@@ -191,27 +189,34 @@ namespace XRpg
 		// • id = character ID
 		// • type = physical, mental, etc.
 		//----------------------------------------------------------------------
-		public List<Stat> LoadCharacterStats( uint id, uint typeId = 0 )
+		public List<Stat> LoadCharacterStats( uint characterId, uint typeId = 0 )
 		{
-			const string sql =
+			Debug.Assert( characterId > 0 );
+
+			string sql =
 				@"SELECT
 					StatsBase.Id,
 					StatsBase.Name,
 					StatsBase.Abbr,
 					StatsBase.Description,
-					StatsBase.Type,
+					StatsBase.TypeId,
+					StatTypes.Name AS TypeName,
 					CharacterStats.Level,
 					CharacterStats.XpToNextLvl
 				FROM CharacterStats
 				JOIN StatsBase ON StatsBase.Id = CharacterStats.StatId
-				JOIN StatTypes ON StatTypes.Id = StatsBase.Type
-				AND CharacterStats.CharacterId = @charId";
+				JOIN StatTypes ON StatTypes.Id = StatsBase.TypeId
+				WHERE CharacterStats.CharacterId = @charId";
+
+			if ( typeId != 0 )
+				sql += @" AND StatsBase.TypeId = @typeId";
 
 			var listStats = _sqlConn.Query<Stat>(
 				sql,
 				new
 				{
-					@charId = id,
+					@charId = characterId,
+					@typeId = typeId,
 				}  )
 				.ToList();
 
@@ -239,7 +244,7 @@ namespace XRpg
 							Name         = @Name,
 							Abbr         = @Abbr,
 							Description  = @Description,
-							Type         = @Type,
+							TypeId       = @Type,
 							LevelMin     = @LevelMin,
 							LevelBase    = @LevelBase,
 							LevelCap     = @LevelCap,

@@ -14,7 +14,7 @@ namespace XRpg
 	// ItemType allows for custom handling by item type;
 	// primarily used to determine what item types containers can accept.
 	// Also might determine the 2D icon, move/drop sound, etc....
-	//TODO: READ FROM DB
+	//TODO: READ FROM DB! THIS IS LIKELY NOT UP-TO-DATE WITH ITEM TYPE TABLE!
 	[Flags]
 	public enum ItemType: ulong // 64 bits
 	{
@@ -211,6 +211,7 @@ namespace XRpg
 	//==============================================================================
 
 	//TODO: If loaded from DB, needs to be a class with
+	//NOTE: "StatTypeEnum" to differentiate from "StatType" class
 	public enum StatTypeEnum
 	{
 		Invalid        = 0,

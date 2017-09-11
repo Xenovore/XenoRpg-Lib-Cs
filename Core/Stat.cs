@@ -16,7 +16,8 @@ namespace XRpg
 		public string       Name         { get; set; }
 		public string       Abbr         { get; set; } // Abbreviation, e.g. ST = Strength, IT = Intuition, IG = Intelligence
 		public string       Description  { get; set; } // Last here so it's last in gridview
-		public StatTypeEnum Type         { get; set; }
+		public StatTypeEnum TypeId       { get; set; }
+		public string       TypeName     { get; set; }
 
 		// CharacterStats table...
 		public float        Level        { get; set; } // Unmodified level
@@ -54,7 +55,7 @@ namespace XRpg
 		public float        ApplyPercent { get; set; } // Addl. scalar; how much to apply
 
 		public List<int> listModIds  { get; set; } // What stats modifies this one?
-	
+
 		// * Level range min/max: This is before modifiers
 		// * Level ranges:
 		//   LevelMin - LevelBaseLo = penalty

@@ -17,7 +17,6 @@ namespace XRpg
 	//==========================================================================
 	public class InventoryManager
 	{
-
 		static SQLiteConnection _sqlConn;
 
 		//TODO: probably don't want a public SQL connection... remove
@@ -36,7 +35,7 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		public bool InitDB()
 		{
-			//TO DO: Load DB filename from config...?
+			//TODO: Load DB filename from config...?
 			const string strDataPath = @"Data";
 			const string strDbFile = "xrpg.sqlite";
 
@@ -70,7 +69,6 @@ namespace XRpg
 				// Most likely issue here; sqlite.interop.dll is not where it's supposed to be.
 
 				throw new ApplicationException( e.Message, e);
-				return false;
 			}
 
 			return true;
@@ -197,7 +195,7 @@ namespace XRpg
 			}
 
 			return listItems[0]; //FIrst in list is container?
-;		}
+		}
 
 
 		//TODO: MOVE BACK INTO ItemContainer CLASS?
