@@ -106,6 +106,7 @@
     <Compile Include="Managers\InventoryManager.cs" />
     <Compile Include="Core\Materials.cs" />
     <Compile Include="Core\Stat.cs" />
+    <Compile Include="Utility\XRpgDB.cs" />
     <Compile Include="Utility\Tree.cs" />
     <Compile Include="Utility\Vector.cs" />
   </ItemGroup>

@@ -1,14 +1,13 @@
-﻿using System;
+﻿#pragma warning disable RECS0091 // Use 'var' keyword when possible
+
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Data;
 using System.Data.SQLite;
-using System.Reflection;
-using System.Windows.Forms;
-using System.Xml;
 using Dapper;
+using XRpg.Utility;
 
 namespace XRpg
 {
@@ -28,82 +27,21 @@ namespace XRpg
 		const float c_fAttrLvlBase = 50;
 		const float c_fAttrLvlCap = 100;
 
-		static SQLiteConnection _sqlConn;
-
-		static SQLiteConnection SQLConn
-		{
-			get { return _sqlConn; }
-		}
-
-
 		public CharacterManager()
 		{
-		}
-
-
-		//TODO: MOVE OUT TO SEPARATE FILE
-		//----------------------------------------------------------------------
-		public bool InitDB()
-		{
-			//TODO: Load DB filename from config...?
-			const string strDataPath = @".\Data";
-			const string strDbFile = "xrpg.sqlite";
-
-			if ( !Directory.Exists( strDataPath ) )
-			{
-				Directory.CreateDirectory( strDataPath );
-			}
-
-			string strDbFilePath = strDataPath + '\\' + strDbFile;
-
-			// Does the DB exist...?
-			if ( !File.Exists( strDbFilePath ) )
-			{
-				// ...Nope; create it.
-				SQLiteConnection.CreateFile( strDbFilePath );
-				bool bSuccess = CreateCharacterTables();
-
-				if ( !bSuccess ) return false;
-			}
-
-			//NOTE: If connection pooling required, add "Pooling=True;Max Pool Size=100;"...
-			string strDBSource = $@"Data Source={strDbFilePath};version=3;";
-
-			try
-			{
-				_sqlConn = new SQLiteConnection( strDBSource );
-				_sqlConn.Open();
-			}
-			catch ( Exception e )
-			{
-				// Most likely issue here; sqlite.interop.dll is not where it's supposed to be.
-
-				throw new ApplicationException( e.Message, e);
-			}
-
-			return true;
-		}
-
-
-		//TODO: MOVE OUT
-		//----------------------------------------------------------------------
-		bool CreateCharacterTables()
-		{
-			//TODO: Put SQL to create tables in here
-			return true;
 		}
 
 
 		//----------------------------------------------------------------------
 		public CharacterBase LoadCharacterById( uint Id )
 		{
-			Debug.Assert( _sqlConn != null );
+			Debug.Assert( XRpgDB.Conn != null );
 
 			const string sql =
 				@"SELECT * FROM Characters
 				WHERE Characters.Id = @charId";
 
-			CharacterBase character = _sqlConn.Query<CharacterBase>(
+			CharacterBase character = XRpgDB.Conn.Query<CharacterBase>(
 				sql,
 				new { @charId = Id } ).FirstOrDefault();
 
@@ -114,13 +52,13 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		public List<CharacterBase> LoadAllCharacters( CharacterType charType = CharacterType.Player )
 		{
-			Debug.Assert( _sqlConn != null );
+			Debug.Assert( XRpgDB.Conn != null );
 
 			const string sql =
 				@"SELECT * FROM Characters
 				WHERE Characters.Type = @type";
 
-			List<CharacterBase> listChars = _sqlConn.Query<CharacterBase>(
+			List<CharacterBase> listChars = XRpgDB.Conn.Query<CharacterBase>(
 				sql,
 				new { @type = (int)charType } ).ToList();
 
@@ -138,7 +76,7 @@ namespace XRpg
 				FROM StatsBase";
 				//WHERE StatsBase.Type IN @types";
 
-			var dictStats = _sqlConn.Query<StatBase>( sqlStats )
+			var dictStats = XRpgDB.Conn.Query<StatBase>( sqlStats )
 				.ToDictionary( stat => stat.Id, stat => stat );
 
 			//TODO: REMOVE? Attribute modifiers would probably be on a per-character basis
@@ -156,7 +94,7 @@ namespace XRpg
 				//kvp.Value.listModIds = new List<int>();
 
 				kvp.Value.listModIds =
-					_sqlConn.Query<int>(
+					XRpgDB.Conn.Query<int>(
 					sqlMods,
 					new
 					{
@@ -177,7 +115,7 @@ namespace XRpg
 				FROM StatTypes";
 				//WHERE StatsBase.Type IN @types";
 
-			var dictStatTypes = _sqlConn.Query<StatType>( sqlStats )
+			var dictStatTypes = XRpgDB.Conn.Query<StatType>( sqlStats )
 				.ToDictionary( statType => statType.Id, statType => statType );
 
 			return dictStatTypes;
@@ -211,7 +149,7 @@ namespace XRpg
 			if ( typeId != 0 )
 				sql += @" AND StatsBase.TypeId = @typeId";
 
-			var listStats = _sqlConn.Query<Stat>(
+			var listStats = XRpgDB.Conn.Query<Stat>(
 				sql,
 				new
 				{
@@ -232,7 +170,7 @@ namespace XRpg
 
 			int result;
 
-			using ( var transact = _sqlConn.BeginTransaction() )
+			using ( var transact = XRpgDB.Conn.BeginTransaction() )
 			{
 				try
 				{
@@ -275,7 +213,7 @@ namespace XRpg
 
 					//TODO: Need to save modifiers too
 
-					result =  _sqlConn.Execute( sql, listNewAttribs );
+					result =  XRpgDB.Conn.Execute( sql, listNewAttribs );
 
 					transact.Commit();
 				}
@@ -312,7 +250,7 @@ namespace XRpg
 				*
 				FROM Species";
 
-			var list = _sqlConn.Query<Species>( sql ).ToList();
+			var list = XRpgDB.Conn.Query<Species>( sql ).ToList();
 			return list;
 		}
 
@@ -325,7 +263,7 @@ namespace XRpg
 				*
 				FROM Professions";
 
-			var list = _sqlConn.Query<Profession>( sql ).ToList();
+			var list = XRpgDB.Conn.Query<Profession>( sql ).ToList();
 			return list;
 		}
 
@@ -338,7 +276,7 @@ namespace XRpg
 				*
 				FROM StatTypes";
 
-			var list = _sqlConn.Query<StatType>( sql ).ToList();
+			var list = XRpgDB.Conn.Query<StatType>( sql ).ToList();
 			return list;
 		}
 	}

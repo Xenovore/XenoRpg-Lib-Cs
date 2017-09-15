@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Xrpg.Utility
+namespace XRpg.Utility
 {
 	//TODO: Not used yet; use this instead of Item list in ItemContainer?
 	public class TreeNode<T>

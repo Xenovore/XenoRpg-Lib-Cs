@@ -4,10 +4,8 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Data.SQLite;
 using Dapper;
-
+using XRpg.Utility;
 
 namespace XRpg
 {
@@ -17,77 +15,15 @@ namespace XRpg
 	//==========================================================================
 	public class InventoryManager
 	{
-		static SQLiteConnection _sqlConn;
-
-		//TODO: probably don't want a public SQL connection... remove
-		static SQLiteConnection SQLConn
-		{
-			get { return _sqlConn; }
-		}
-
-
 		public InventoryManager()
 		{
-		}
-
-
-		//TODO: MOVE OUT
-		//----------------------------------------------------------------------
-		public bool InitDB()
-		{
-			//TODO: Load DB filename from config...?
-			const string strDataPath = @"Data";
-			const string strDbFile = "xrpg.sqlite";
-
-			if ( !Directory.Exists( strDataPath ) )
-			{
-				Directory.CreateDirectory( strDataPath );
-			}
-
-			string strDbFilePath = strDataPath + '\\' + strDbFile;
-
-			// Does the DB exist...?
-			if ( !File.Exists( strDbFilePath ) )
-			{
-				// ...Nope; create it.
-				SQLiteConnection.CreateFile( strDbFilePath );
-				bool bSuccess = CreateAllItemTables();
-				if ( !bSuccess ) return false;
-			}
-
-			//NOTE: If connection pooling required, add "Pooling=True;Max Pool Size=100;"...
-			string strDBSource =
-				string.Format( @"Data Source={0};version=3;", strDbFilePath );
-
-			try
-			{
-				_sqlConn = new SQLiteConnection( strDBSource );
-				_sqlConn.Open();
-			}
-			catch ( Exception e )
-			{
-				// Most likely issue here; sqlite.interop.dll is not where it's supposed to be.
-
-				throw new ApplicationException( e.Message, e);
-			}
-
-			return true;
-		}
-
-
-		//TODO: MOVE OUT
-		//----------------------------------------------------------------------
-		bool CreateAllItemTables()
-		{
-			//TODO: Put SQL to create tables in here
-			return true;
 		}
 
 
 		//----------------------------------------------------------------------
 		public List<ItemTypeDef> LoadItemTypes()
 		{
-			Debug.Assert( _sqlConn != null );
+			Debug.Assert( XRpgDB.Conn != null );
 
 			const string sql =
 				@"SELECT
@@ -96,7 +32,7 @@ namespace XRpg
 					IconIdx
 				FROM ItemTypes";
 
-			List<ItemTypeDef> listItemTypes = _sqlConn.Query<ItemTypeDef>( sql ).ToList();
+			List<ItemTypeDef> listItemTypes = XRpgDB.Conn.Query<ItemTypeDef>( sql ).AsList();
 
 			return listItemTypes;
 		}
@@ -105,7 +41,7 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		public List<Item> LoadAllItems()
 		{
-			Debug.Assert( _sqlConn != null );
+			Debug.Assert( XRpgDB.Conn != null );
 
 			List<Item> listItems;
 
@@ -114,7 +50,7 @@ namespace XRpg
 				*
 				FROM Items";
 
-			listItems = _sqlConn.Query<Item>( sql ).ToList();
+			listItems = XRpgDB.Conn.Query<Item>( sql ).AsList();
 
 			//TODO: Container
 
@@ -150,7 +86,7 @@ namespace XRpg
 				ORDER BY ItemId";
 
 			List<Item> listItems =
-				_sqlConn.Query<Item, ItemContainer, Item>(
+				XRpgDB.Conn.Query<Item, ItemContainer, Item>(
 					sql,
 					( item, cont) => { item.Container = cont; return item; },
 					new { @rootContainerId = containerId },
@@ -217,7 +153,7 @@ namespace XRpg
 
 			const string sql = @"SELECT * FROM Items WHERE ";
 
-			List<Item> listItems = _sqlConn.Query<Item>(sql).ToList();
+			List<Item> listItems = XRpgDB.Conn.Query<Item>(sql).AsList();
 
 			if ( !bRecurse ) return listItems;
 
