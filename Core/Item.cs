@@ -8,7 +8,6 @@ namespace XRpg
 	// Database Table: Item
 	public class Item
 	{
-		//TODO: Use auto props...?
 		public UInt32      NestLevel    { get; set; }
 		public UInt32      ParentContId { get; set; }
 		public UInt32      Id           { get; set; }
@@ -30,9 +29,9 @@ namespace XRpg
 		public uint        SizeH        { get; set; }
 
 		//TODO: put back in Vector
-		public float       LocationX    { get; set; } // location (if local, z = layer depth)
-		public float       LocationY    { get; set; }
-		public float       LocationZ    { get; set; }
+		public float       PosX         { get; set; } // position (if local, z = layer depth)
+		public float       PosY         { get; set; }
+		public float       PosZ         { get; set; }
 
 		public ItemContainer Container { get; set; }
 
