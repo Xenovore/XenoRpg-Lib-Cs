@@ -44,15 +44,15 @@ namespace XRpg
 	public class StatBase: Stat
 	{
 		// StatBase table...
-		public float        LevelMin     { get; set; } // Level range min.; can't go below this*
-		public float        LevelBaseLo  { get; set; } // Base level low end*
-		public float        LevelBaseHi  { get; set; } // Base level high end*
-		public float        LevelMax     { get; set; } // Level range max; can't go above this*
-		public float        ScoreBase    { get; set; } // Per level score
-		public float        XPCost       { get; set; } // Per level XP cost to increase level
-		public int          ApplyType    { get; set; } // 1 = score, 2 = level
-		public int          ApplyHow     { get; set; } // 1 = add,  2= multiply
-		public float        ApplyPercent { get; set; } // Addl. scalar; how much to apply
+		public float     LevelMin     { get; set; } // Level range min.; can't go below this*
+		public float     LevelBaseLo  { get; set; } // Base level low end*
+		public float     LevelBaseHi  { get; set; } // Base level high end*
+		public float     LevelMax     { get; set; } // Level range max; can't go above this*
+		public float     ScoreBase    { get; set; } // Per level score
+		public float     XPCost       { get; set; } // Per level XP cost to increase level
+		public ApplyType ApplyType    { get; set; } // 1 = score, 2 = level
+		public ApplyHow  ApplyHow     { get; set; } // 1 = add,  2= multiply
+		public float     ApplyPercent { get; set; } // Addl. scalar; how much to apply
 
 		public List<int> listModIds  { get; set; } // What stats modifies this one?
 

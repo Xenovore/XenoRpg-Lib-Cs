@@ -1,5 +1,4 @@
-﻿
-using System;
+﻿using System;
 
 
 namespace XRpg
@@ -230,6 +229,11 @@ namespace XRpg
 		Level = 2, // Mod applies to level
 	}
 
+	public enum ApplyHow
+	{
+		Add = 1,
+		Multiply = 2,
+	}
 
 	// ACTIONS
 	//==============================================================================
