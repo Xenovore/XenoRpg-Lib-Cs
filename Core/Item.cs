@@ -15,7 +15,7 @@ namespace XRpg
 		public string      Name         { get; set; }
 		public string      Description  { get; set; }
 
-		public ItemType    Type         { get; set; }
+		public ItemTypeEnum    Type         { get; set; }
 
 		public float       Weight       { get; set; } // Kg; min = 0.01 (1 g)
 		public bool        IsEnabled    { get; set; } // Can player manipulate this item
@@ -47,7 +47,7 @@ namespace XRpg
 		}
 
 
-		public void SetItemType( ItemType type )
+		public void SetItemType( ItemTypeEnum type )
 		{
 			Type = type;
 		}
@@ -66,32 +66,4 @@ namespace XRpg
 			}
 		}
 	};
-
-
-	//==========================================================================
-	public class ItemTypeDef
-	{
-		public string Name     { get; set; }
-		public string HexValue { get; set; }
-		public int    IconIdx  { get; set; }
-
-		public UInt64 Value
-		{
-			get
-			{
-				return Convert.ToUInt64( HexValue, 16 );
-			}
-		}
-
-		public ItemType ItemType
-		{
-			get
-			{
-				ItemType typeOut =
-					(ItemType)Enum.Parse( typeof(ItemType), HexValue.TrimStart( new [] {'0', 'x'} ) );
-
-				return typeOut;
-			}
-		}
-	}
 }

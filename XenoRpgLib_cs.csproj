@@ -89,6 +89,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Core\ItemType.cs" />
     <Compile Include="Managers\ActionManager.cs" />
     <Compile Include="Core\Profession.cs" />
     <Compile Include="Core\Recipe.cs" />
@@ -106,6 +107,7 @@
     <Compile Include="Managers\InventoryManager.cs" />
     <Compile Include="Core\Materials.cs" />
     <Compile Include="Core\Stat.cs" />
+    <Compile Include="Utility\KeyedCollectionEx.cs" />
     <Compile Include="Utility\XRpgDB.cs" />
     <Compile Include="Utility\Tree.cs" />
     <Compile Include="Utility\Vector.cs" />

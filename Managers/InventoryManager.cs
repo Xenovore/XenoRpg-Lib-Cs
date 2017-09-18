@@ -21,20 +21,26 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public List<ItemTypeDef> LoadItemTypes()
+		public KeyedCollectionEx<string, ItemType> LoadItemTypes()
 		{
 			Debug.Assert( XRpgDB.Conn != null );
 
 			const string sql =
 				@"SELECT
 					Name,
-					HexValue,
+					Value,
 					IconIdx
 				FROM ItemTypes";
 
-			List<ItemTypeDef> listItemTypes = XRpgDB.Conn.Query<ItemTypeDef>( sql ).AsList();
+			List<ItemType> listItemTypes = XRpgDB.Conn.Query<ItemType>( sql ).AsList();
 
-			return listItemTypes;
+			var collection = new KeyedCollectionEx<string, ItemType>( itemType => itemType.Name );
+			foreach ( var itemType in listItemTypes )
+			{
+				collection.Add( itemType );
+			}
+
+			return collection;
 		}
 
 
@@ -109,7 +115,7 @@ namespace XRpg
 			foreach ( var item in listItems )
 			{
 				// Is it a container...?
-				if ( ( item.Type & ItemType.Container ) > 0 )
+				if ( ( item.Type & ItemTypeEnum.Container ) > 0 )
 				{
 					uint parentId = item.Id;
 

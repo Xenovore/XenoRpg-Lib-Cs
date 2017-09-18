@@ -10,12 +10,15 @@ namespace XRpg
 		NonPlayer = 2,
 	}
 
+
+	//TODO: READ ENUMS FROM DB...?
+	// https://stackoverflow.com/questions/857414/dynamically-create-an-enum
+
 	// ItemType allows for custom handling by item type;
 	// primarily used to determine what item types containers can accept.
 	// Also might determine the 2D icon, move/drop sound, etc....
-	//TODO: READ FROM DB! THIS IS LIKELY NOT UP-TO-DATE WITH ITEM TYPE TABLE!
 	[Flags]
-	public enum ItemType: ulong // 64 bits
+	public enum ItemTypeEnum: ulong // 64 bits
 	{
 		None          = 0x00000000, // On container, no restrictions
 		// Containers...

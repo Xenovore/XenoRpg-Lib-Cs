@@ -23,7 +23,7 @@ namespace XRpg
 		public uint     VolumeCap   { get; set; }
 		public float    WeightTotal { get; set; }
 		public float    WeightCap   { get; set; }
-		public ItemType TypeAllowed { get; set; } // Item types allowed in container
+		public ItemTypeEnum TypeAllowed { get; set; } // Item types allowed in container
 		public bool     Locked      { get; set; }
 
 		public string   Name { get; set; } // Item.Name
