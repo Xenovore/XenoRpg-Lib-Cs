@@ -1,4 +1,4 @@
-﻿namespace XRpg
+﻿namespace XRpg.Utility
 {
 	public class Vector
 	{
