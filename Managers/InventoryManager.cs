@@ -15,32 +15,49 @@ namespace XRpg
 	//==========================================================================
 	public class InventoryManager
 	{
+		// Used to cache results...
+		static KeyedCollectionEx<string, ItemType> _collectionItemTypes;
+
 		public InventoryManager()
 		{
 		}
 
 
 		//----------------------------------------------------------------------
-		public KeyedCollectionEx<string, ItemType> LoadItemTypes()
+		public KeyedCollectionEx<string, ItemType> LoadItemTypes( bool forceReload = false )
 		{
 			Debug.Assert( XRpgDB.Conn != null );
 
-			const string sql =
-				@"SELECT
-					Name,
-					Value,
-					IconIdx
-				FROM ItemTypes";
-
-			List<ItemType> listItemTypes = XRpgDB.Conn.Query<ItemType>( sql ).AsList();
-
-			var collection = new KeyedCollectionEx<string, ItemType>( itemType => itemType.Name );
-			foreach ( var itemType in listItemTypes )
+			if ( forceReload ||
+				 _collectionItemTypes == null ||
+				 _collectionItemTypes?.Count == 0 )
 			{
-				collection.Add( itemType );
+ 				const string sql =
+					@"SELECT
+						Name,
+						Value,
+						IconIdx
+					FROM ItemTypes";
+
+				//TODO: Need custom mapper for KeyedCollectionEx; for now use List and convert...
+				List<ItemType> listItemTypes = XRpgDB.Conn.Query<ItemType>( sql ).AsList();
+
+				if ( _collectionItemTypes == null )
+				{
+					_collectionItemTypes = new KeyedCollectionEx<string, ItemType>( itemType => itemType.Name );
+				}
+				else
+				{
+					_collectionItemTypes.Clear();
+				}
+
+				foreach ( var itemType in listItemTypes )
+				{
+					_collectionItemTypes.Add( itemType );
+				}
 			}
 
-			return collection;
+			return _collectionItemTypes;
 		}
 
 
