@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Xml;
-using System.Windows.Forms;//TODO: Remove, only needed for temp message box...
 
 namespace XRpg
 {
@@ -160,9 +159,6 @@ namespace XRpg
 				//TODO: Option to check and add to sub-containers,
 				// if can't add to this container; e.g. drop earring on
 				// head slot and it finds ear slot
-
-				//TODO: remove temp message box...
-				MessageBox.Show( GetAddResultText( addRes, item.Name ) );
 
 				return addRes;
 			}

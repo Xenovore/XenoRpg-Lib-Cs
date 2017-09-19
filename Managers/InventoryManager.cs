@@ -18,6 +18,7 @@ namespace XRpg
 		// Used to cache results...
 		static KeyedCollectionEx<string, ItemType> _collectionItemTypes;
 
+
 		public InventoryManager()
 		{
 		}
@@ -32,7 +33,7 @@ namespace XRpg
 				 _collectionItemTypes == null ||
 				 _collectionItemTypes?.Count == 0 )
 			{
- 				const string sql =
+				const string sql =
 					@"SELECT
 						Name,
 						Value,
