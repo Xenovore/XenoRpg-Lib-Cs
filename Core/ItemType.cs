@@ -8,6 +8,6 @@
 		public ushort IconIdx     { get; set; }
 		public string Description { get; set; }
 
-		public string ValueAsHex => Value.ToString( "X16" );
+		public string ValueAsHex => "0x" + Value.ToString( "X16" );
 	}
 }

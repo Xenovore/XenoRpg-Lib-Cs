@@ -26,7 +26,7 @@ namespace XRpg
 
 		//----------------------------------------------------------------------
 		// LoadItemTypes( <should it reload> )
-		// • Use this to load all the properties, not just name and value 
+		// • Use this to load all the properties, not just name and value
 		//   (e.g. for the FormEditItemType dialog)
 		//----------------------------------------------------------------------
 		public KeyedCollectionEx<string, ItemTypeClass> LoadItemTypes( bool forceReload = false )
@@ -37,8 +37,7 @@ namespace XRpg
 				 _collectionItemTypes == null ||
 				 _collectionItemTypes?.Count == 0 )
 			{
-				const string sql =
-					@"SELECT * FROM ItemTypes";
+				const string sql = @"SELECT * FROM ItemTypes";
 
 				//TODO: Need custom mapper for KeyedCollectionEx; for now use List and convert...
 				var listItemTypes = XRpgDB.Conn.Query<ItemTypeClass>( sql ).AsList();
