@@ -16,7 +16,7 @@ namespace XRpg
 	public class InventoryManager
 	{
 		// Used to cache results...
-		static KeyedCollectionEx<string, ItemType> _collectionItemTypes;
+		static KeyedCollectionEx<string, ItemTypeClass> _collectionItemTypes;
 
 
 		public InventoryManager()
@@ -25,7 +25,11 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public KeyedCollectionEx<string, ItemType> LoadItemTypes( bool forceReload = false )
+		// LoadItemTypes( <should it reload> )
+		// • Use this to load all the properties, not just name and value 
+		//   (e.g. for the FormEditItemType dialog)
+		//----------------------------------------------------------------------
+		public KeyedCollectionEx<string, ItemTypeClass> LoadItemTypes( bool forceReload = false )
 		{
 			Debug.Assert( XRpgDB.Conn != null );
 
@@ -34,18 +38,14 @@ namespace XRpg
 				 _collectionItemTypes?.Count == 0 )
 			{
 				const string sql =
-					@"SELECT
-						Name,
-						Value,
-						IconIdx
-					FROM ItemTypes";
+					@"SELECT * FROM ItemTypes";
 
 				//TODO: Need custom mapper for KeyedCollectionEx; for now use List and convert...
-				List<ItemType> listItemTypes = XRpgDB.Conn.Query<ItemType>( sql ).AsList();
+				var listItemTypes = XRpgDB.Conn.Query<ItemTypeClass>( sql ).AsList();
 
 				if ( _collectionItemTypes == null )
 				{
-					_collectionItemTypes = new KeyedCollectionEx<string, ItemType>( itemType => itemType.Name );
+					_collectionItemTypes = new KeyedCollectionEx<string, ItemTypeClass>( itemType => itemType.Name );
 				}
 				else
 				{
@@ -82,6 +82,7 @@ namespace XRpg
 
 			return listItems;
 		}
+
 
 		public Item LoadContainer( uint containerId )
 		{
