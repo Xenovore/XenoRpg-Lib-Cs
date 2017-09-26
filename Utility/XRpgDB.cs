@@ -1,4 +1,10 @@
-﻿using System;
+﻿//==============================================================================
+// XRpgDB
+// • Static class provides a SQLite DB connection specifically for "xrpg.sqlite" DB.
+// • Use it like this; e.g. "XRpgDb.Conn.Query<Item>( sql )"
+//==============================================================================
+
+using System;
 using System.IO;
 using System.Data.SQLite;
 
@@ -6,9 +12,7 @@ namespace XRpg.Utility
 {
 	public static class XRpgDB
 	{
-		//TODO: Load DB filename from config...?
-		const string _strDataPath = @"Data\";
-		const string _strDbFile = "xrpg.sqlite";
+		const string _xRpgDbLocation = "Data/xrpg.sqlite";
 
 		static SQLiteConnection _sqlConn = null;
 
@@ -34,22 +38,19 @@ namespace XRpg.Utility
 			bool bCreateTables = false;
 			try
 			{
-				if ( !Directory.Exists( _strDataPath ) )
-				{
-					Directory.CreateDirectory( _strDataPath );
-				}
+				//TODO: Someday, if it seems worth it, get DB path from config
 
-				string strDbFilePath = _strDataPath + _strDbFile;
-
-				// Does the DB exist...?
-				if ( !File.Exists( strDbFilePath ) )
+				//NOTE: SQLite will auto-create the file if it doesn't exist.
+				// But, need to know if it's necessary to create the tables...
+				if ( !File.Exists( _xRpgDbLocation ) )
 				{
-					// ...Nope; create it.
-					SQLiteConnection.CreateFile( strDbFilePath );
+					// ...and might as explicitly create it.
+					SQLiteConnection.CreateFile( _xRpgDbLocation );
 					bCreateTables = true;
 				}
+
 				//NOTE: If connection pooling required, add "Pooling=True;Max Pool Size=100;"...
-				string strDBSource = $"Data Source={strDbFilePath};version=3;";
+				string strDBSource = $"Data Source={_xRpgDbLocation};version=3;";
 				_sqlConn = new SQLiteConnection( strDBSource );
 				_sqlConn.Open();
 			}
@@ -68,7 +69,7 @@ namespace XRpg.Utility
 		static bool CreateDBTables()
 		{
 			//TODO: Put SQL to create tables in here
-			
+
 			// For now, we'll assume tables already exist and are populated
 			return true;
 		}
