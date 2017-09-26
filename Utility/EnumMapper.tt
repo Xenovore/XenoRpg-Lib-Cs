@@ -1,0 +1,67 @@
+﻿<#@ template debug="true" hostspecific="false" language="C#" #>
+<#@ output extension=".generated.cs" #>
+<#@ assembly name="System.Core" #>
+<#@ assembly name="System.Data" #>
+<#@ assembly name="G:\DEV\MiscProjects\XenoRpg\XenoRpg_Editor\packages\System.Data.SQLite.Core.1.0.105.2\lib\net46\System.Data.SQLite.dll" #>
+<#@ assembly name="G:\DEV\MiscProjects\XenoRpg\XenoRpgLib_cs\bin\Debug\XenoRpgLib_cs.dll" #>
+<#@ assembly name="G:\DEV\MiscProjects\XenoRpg\XenoRpg_Editor\packages\Dapper.1.50.2\lib\net451\Dapper.dll" #>
+<#@ import namespace="System.Linq" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ import namespace="System.IO" #>
+<#@ import namespace="System.Data.SQLite" #>
+<#@ import namespace="Dapper" #>
+<#@ import namespace="XRpg" #>
+<#@ import namespace="XRpg.Utility" #>
+using System;
+
+<#
+	//TODO: FIGURE OUT HOW TO MAKE THIS RELATIVE TO PROJECT LOCATION (defaults to VS template location, "appz\VisualStudioExpress2015\Common7\IDE\")
+	const string _xRpgDbLocation = "G:/DEV/MiscProjects/XenoRpg/XenoRpg_Editor/bin/Debug/Data/xrpg.sqlite";
+	SQLiteConnection _sqlConn = null;
+
+	try
+	{
+		string strDBSource = $"Data Source={_xRpgDbLocation};version=3;";
+#>
+<#= $"//DB Source = \"{strDBSource}\"" #>
+<#
+		_sqlConn = new SQLiteConnection( strDBSource );
+		_sqlConn.Open();
+	}
+	catch ( Exception e )
+	{
+		// Most likely issue here; sqlite.interop.dll is not where it's supposed to be.
+
+		throw new ApplicationException( e.Message, e);
+	}
+#>
+namespace XRpg
+{
+	[Flags]
+	public enum ItemType: ulong // 64 bits
+	{
+<#
+	const string sql = @"SELECT * FROM ItemTypes";
+
+	var listItemTypes = _sqlConn.Query<ItemTypeClass>( sql ).AsList();
+
+	// Find longest name so we can pad and align...
+	int iPadAmount = 0;
+	foreach ( var type in listItemTypes )
+	{
+		iPadAmount = Math.Max( iPadAmount, type.Name.Length );
+	}
+
+	// Output the enums...
+	foreach ( var type in listItemTypes )
+	{
+		string strPaddedName = type.Name.PadRight( iPadAmount );
+#>
+	 <#= $"\t{strPaddedName} = 0x{type.Value.ToString( "X16" )}, // {type.Description}" #>
+<#
+	}
+
+#>
+	}
+}
