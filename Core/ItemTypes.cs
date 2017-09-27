@@ -37,7 +37,7 @@ namespace XRpg
 					@"SELECT
 						Name,
 						Value,
-						IconIdx
+						IconIndex
 					FROM ItemTypes";
 
 				//TODO: Need custom mapper for KeyedCollectionEx; for now use List and convert...
