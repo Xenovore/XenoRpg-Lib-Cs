@@ -8,30 +8,30 @@ namespace XRpg
 	// Database Table: Item
 	public class Item
 	{
-		public UInt32      NestLevel    { get; set; }
-		public UInt32      ParentContId { get; set; }
-		public UInt32      Id           { get; set; }
+		public UInt32       NestLevel    { get; set; }
+		public UInt32       ParentContId { get; set; }
+		public UInt32       Id           { get; set; }
 
-		public string      Name         { get; set; }
-		public string      Description  { get; set; }
+		public string       Name         { get; set; }
+		public string       Description  { get; set; }
 
-		public ItemTypeEnum    Type         { get; set; }
+		public ItemTypeEnum Type        { get; set; }
 
-		public float       Weight       { get; set; } // Kg; min = 0.01 (1 g)
-		public bool        IsEnabled    { get; set; } // Can player manipulate this item
-		public UInt16      Quantity     { get; set; } // Stack total
-		public UInt16      QuantityCap  { get; set; } // Stack max capacity
-		public ItemLocation  Location   { get; set; } // In world, or local (on character: in backpack, pouch, etc.)
+		public float        Weight       { get; set; } // Kg; min = 0.01 (1 g)
+		public bool         IsEnabled    { get; set; } // Can player manipulate this item
+		public UInt16       Quantity     { get; set; } // Stack total
+		public UInt16       QuantityCap  { get; set; } // Stack max capacity
+		public ItemLocation Location    { get; set; } // In world, or local (on character: in backpack, pouch, etc.)
 
 		//UI display stuff
-		public UInt16      IconIndex    { get; set; }
-		public uint        SizeW        { get; set; } // 2D tile size, e.g. 1x1 for smallest items
-		public uint        SizeH        { get; set; }
+		public UInt16       IconIndex    { get; set; }
+		public uint         SizeW        { get; set; } // 2D tile size, e.g. 1x1 for smallest items
+		public uint         SizeH        { get; set; }
 
 		//TODO: put back in Vector
-		public float       PosX         { get; set; } // position (if local, z = layer depth)
-		public float       PosY         { get; set; }
-		public float       PosZ         { get; set; }
+		public float        PosX         { get; set; } // position (if local, z = layer depth)
+		public float        PosY         { get; set; }
+		public float        PosZ         { get; set; }
 
 		public ItemContainer Container { get; set; }
 
