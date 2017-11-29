@@ -24,8 +24,9 @@ namespace XRpg
 		//static private Dictionary<int, Stat> _dictSkillsAll;
 		//static private Dictionary<int, Stat> _dictSpecialStatsAll;
 
-		const float c_fAttrLvlBase = 50;
-		const float c_fAttrLvlCap = 100;
+		static CharacterManager()
+		{
+		}
 
 
 		//----------------------------------------------------------------------
