@@ -15,25 +15,21 @@ namespace XRpg
 	// CharacterManager
 	// • Manages all data-related RPG tasks, e.g. loading stat info
 	//==========================================================================
-	public class CharacterManager
+	static public class CharacterManager
 	{
 		// These are here to be able to cache results...
-		private Dictionary<int, CharacterBase> _dictCharactersAll;
+		//static private Dictionary<int, CharacterBase> _dictCharactersAll;
 
-		private Dictionary<int, Stat> _dictAttribsAll;
-		private Dictionary<int, Stat> _dictSkillsAll;
-		private Dictionary<int, Stat> _dictSpecialStatsAll;
+		//static private Dictionary<int, Stat> _dictAttribsAll;
+		//static private Dictionary<int, Stat> _dictSkillsAll;
+		//static private Dictionary<int, Stat> _dictSpecialStatsAll;
 
 		const float c_fAttrLvlBase = 50;
 		const float c_fAttrLvlCap = 100;
 
-		public CharacterManager()
-		{
-		}
-
 
 		//----------------------------------------------------------------------
-		public CharacterBase LoadCharacterById( uint Id )
+		static public CharacterBase LoadCharacterById( uint Id )
 		{
 			Debug.Assert( XRpgDB.Conn != null );
 
@@ -50,7 +46,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public List<CharacterBase> LoadAllCharacters( CharacterType charType = CharacterType.Player )
+		static public List<CharacterBase> LoadAllCharacters( CharacterType charType = CharacterType.Player )
 		{
 			Debug.Assert( XRpgDB.Conn != null );
 
@@ -68,7 +64,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public  Dictionary<int, StatBase> LoadAllStats()
+		static public Dictionary<int, StatBase> LoadAllStats()
 		{
 			const string sqlStats =
 				@"SELECT
@@ -107,7 +103,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public Dictionary<int, StatType> LoadStatTypes()
+		static public Dictionary<int, StatType> LoadStatTypes()
 		{
 			const string sqlStats =
 				@"SELECT
@@ -127,7 +123,7 @@ namespace XRpg
 		// • id = character ID
 		// • type = physical, mental, etc.
 		//----------------------------------------------------------------------
-		public List<Stat> LoadCharacterStats( uint characterId, uint typeId = 0 )
+		static public List<Stat> LoadCharacterStats( uint characterId, uint typeId = 0 )
 		{
 			Debug.Assert( characterId > 0 );
 
@@ -164,7 +160,7 @@ namespace XRpg
 
 		//TODO: UPDATE TO SAVE ALL STATS
 		//----------------------------------------------------------------------
-		public int SaveMasterAttribs( List<Stat> listNewAttribs )
+		static public int SaveMasterAttribs( List<Stat> listNewAttribs )
 		{
 			Debug.Assert( listNewAttribs != null );
 
@@ -229,21 +225,21 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public void ClearAttribs()
+		static public void ClearAttribs()
 		{
-			_dictAttribsAll.Clear();
+			//_dictAttribsAll.Clear();
 		}
 
 
 		//----------------------------------------------------------------------
-		public void ClearSkills()
+		static public void ClearSkills()
 		{
-			_dictSkillsAll.Clear();
+			//_dictSkillsAll.Clear();
 		}
 
 
 		//----------------------------------------------------------------------
-		public List<Species> GetSpeciesList()
+		static public List<Species> GetSpeciesList()
 		{
 			const string sql =
 				@"SELECT
@@ -256,7 +252,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public List<Profession> GetProfessionList()
+		static public List<Profession> GetProfessionList()
 		{
 			const string sql =
 				@"SELECT
@@ -269,7 +265,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public List<StatType> GetStatTypeList()
+		static public List<StatType> GetStatTypeList()
 		{
 			const string sql =
 				@"SELECT

@@ -10,7 +10,7 @@ namespace XRpg
 	// ActionManager
 	// • Manages actions, i.e. calculating difficulties, results, etc.
 	//==========================================================================
-	class ActionManager
+	static class ActionManager
 	{
 	}
 }

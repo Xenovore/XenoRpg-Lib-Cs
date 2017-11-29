@@ -13,13 +13,13 @@ namespace XRpg
 	// InventoryManager
 	// • Manages all inventory item stuff
 	//==========================================================================
-	public class InventoryManager
+	static public class InventoryManager
 	{
 		// Used to cache results...
 		static KeyedCollectionEx<string, ItemTypeClass> _collectionItemTypes;
 
 
-		public InventoryManager()
+		static InventoryManager()
 		{
 		}
 
@@ -29,7 +29,7 @@ namespace XRpg
 		// • Use this to load all the properties, not just name and value
 		//   (e.g. for the FormEditItemType dialog)
 		//----------------------------------------------------------------------
-		public KeyedCollectionEx<string, ItemTypeClass> LoadItemTypes( bool forceReload = false )
+		static public KeyedCollectionEx<string, ItemTypeClass> LoadItemTypes( bool forceReload = false )
 		{
 			Debug.Assert( XRpgDB.Conn != null );
 
@@ -62,7 +62,7 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		public List<Item> LoadAllItems()
+		static public List<Item> LoadAllItems()
 		{
 			Debug.Assert( XRpgDB.Conn != null );
 
@@ -83,7 +83,7 @@ namespace XRpg
 		}
 
 
-		public Item LoadContainer( uint containerId )
+		static public Item LoadContainer( uint containerId )
 		{
 			// This query returns *everything* in the container...
 			const string sql =
@@ -123,7 +123,7 @@ namespace XRpg
 		}
 
 
-		private Item buildInventoryTree_r( Item parentItem, List<Item> listItems )
+		static private Item buildInventoryTree_r( Item parentItem, List<Item> listItems )
 		{
 			if ( listItems == null || !listItems.Any()) return null;
 
@@ -163,7 +163,7 @@ namespace XRpg
 		//	LoadItemsInContainer( <item container> )
 		//	• Loads items in container from DB; recurses down into all child containers
 		// ----------------------------------------------------------------------
-		public List<Item> LoadItemsInContainer( uint containerId, bool bRecurse = true )
+		static public List<Item> LoadItemsInContainer( uint containerId, bool bRecurse = true )
 		{
 			List<Item> listItems = LoadItemsInContainer_r( containerId, bRecurse );
 
@@ -172,7 +172,7 @@ namespace XRpg
 
 
 		// ----------------------------------------------------------------------------
-		private List<Item> LoadItemsInContainer_r( uint containerId, bool bRecurse )
+		static private List<Item> LoadItemsInContainer_r( uint containerId, bool bRecurse )
 		{
 
 			const string sql = @"SELECT * FROM Items WHERE ";

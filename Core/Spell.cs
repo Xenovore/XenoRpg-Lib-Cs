@@ -13,6 +13,6 @@ namespace XRpg
 		// Difficulty/Level
 		// ***Power cost is on effect
 
-		List<Effect> _listEffects;
+		//List<Effect> _listEffects;
 	}
 }
