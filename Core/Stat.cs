@@ -15,13 +15,15 @@ namespace XRpg
 		public int          Id           { get; set; }
 		public string       Name         { get; set; }
 		public string       Abbr         { get; set; } // Abbreviation, e.g. ST = Strength, IT = Intuition, IG = Intelligence
-		public string       Description  { get; set; } // Last here so it's last in gridview
-		public StatTypeEnum TypeId       { get; set; }
-		public string       TypeName     { get; set; }
 
 		// CharacterStats table...
 		public float        Level        { get; set; } // Unmodified level
 		public float        XpToNextLvl  { get; set; } // Total XP towards next level
+
+		// StatBase table... (down here so they come last in gridview)
+		public StatTypeEnum TypeId       { get; set; }
+		public string       TypeName     { get; set; }
+		public string       Description  { get; set; } // Last here so it's last in gridview
 
 		// Calculated...
 		protected float _fLevelTotal;   // Total modified level

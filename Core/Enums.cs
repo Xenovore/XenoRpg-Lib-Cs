@@ -5,11 +5,17 @@ namespace XRpg
 {
 	public enum CharacterType: ushort
 	{
-		Invalid   = 0,
+		All       = 0,
 		Player    = 1,
 		NonPlayer = 2,
 	}
 
+	public enum Gender: ushort
+	{
+		None = 0,
+		Male = 1,
+		Female = 2,
+	}
 
 	//TODO: READ ENUMS FROM DB...?
 	// https://stackoverflow.com/questions/857414/dynamically-create-an-enum

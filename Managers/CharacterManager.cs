@@ -47,13 +47,53 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		static public List<CharacterBase> LoadAllCharacters( CharacterType charType = CharacterType.Player )
+		// LoadCharacterStats()
+		// • id = character ID
+		// • type = physical, mental, etc. 0 =  all
+		//----------------------------------------------------------------------
+		static public List<Stat> LoadCharacterStats( uint characterId, uint typeId = 0 )
+		{
+			Debug.Assert( characterId > 0 );
+
+			string sql =
+				@"SELECT
+					StatsBase.Id,
+					StatsBase.Name,
+					StatsBase.Abbr,
+					StatsBase.Description,
+					StatsBase.TypeId,
+					StatTypes.Name AS TypeName,
+					CharacterStats.Level,
+					CharacterStats.XpToNextLvl
+				FROM CharacterStats
+				JOIN StatsBase ON StatsBase.Id = CharacterStats.StatId
+				JOIN StatTypes ON StatTypes.Id = StatsBase.TypeId
+				WHERE CharacterStats.CharacterId = @charId";
+
+			// Load by stat type; 0 = all...
+			if ( typeId != 0 )
+				sql += @" AND StatsBase.TypeId = @typeId";
+
+			var listStats = XRpgDB.Conn.Query<Stat>(
+				sql,
+				new
+				{
+					@charId = characterId,
+					@typeId = typeId,
+				}  )
+				.ToList();
+
+			return listStats;
+		}
+
+
+		//----------------------------------------------------------------------
+		static public List<CharacterBase> LoadAllCharacters( CharacterType charType = CharacterType.All )
 		{
 			Debug.Assert( XRpgDB.Conn != null );
 
-			const string sql =
-				@"SELECT * FROM Characters
-				WHERE Characters.Type = @type";
+			string sql = @"SELECT * FROM Characters";
+			if ( charType != CharacterType.All ) sql += @"WHERE Characters.Type = @type";
 
 			List<CharacterBase> listChars = XRpgDB.Conn.Query<CharacterBase>(
 				sql,
@@ -76,7 +116,8 @@ namespace XRpg
 			var dictStats = XRpgDB.Conn.Query<StatBase>( sqlStats )
 				.ToDictionary( stat => stat.Id, stat => stat );
 
-			//TODO: REMOVE? Attribute modifiers would probably be on a per-character basis
+			//TODO:
+			//
 			// ----- Now fetch modifiers for each attribute...
 			const string sqlMods =
 				@"SELECT
@@ -116,46 +157,6 @@ namespace XRpg
 				.ToDictionary( statType => statType.Id, statType => statType );
 
 			return dictStatTypes;
-		}
-
-
-		//----------------------------------------------------------------------
-		// LoadCharacterStats()
-		// • id = character ID
-		// • type = physical, mental, etc.
-		//----------------------------------------------------------------------
-		static public List<Stat> LoadCharacterStats( uint characterId, uint typeId = 0 )
-		{
-			Debug.Assert( characterId > 0 );
-
-			string sql =
-				@"SELECT
-					StatsBase.Id,
-					StatsBase.Name,
-					StatsBase.Abbr,
-					StatsBase.Description,
-					StatsBase.TypeId,
-					StatTypes.Name AS TypeName,
-					CharacterStats.Level,
-					CharacterStats.XpToNextLvl
-				FROM CharacterStats
-				JOIN StatsBase ON StatsBase.Id = CharacterStats.StatId
-				JOIN StatTypes ON StatTypes.Id = StatsBase.TypeId
-				WHERE CharacterStats.CharacterId = @charId";
-
-			if ( typeId != 0 )
-				sql += @" AND StatsBase.TypeId = @typeId";
-
-			var listStats = XRpgDB.Conn.Query<Stat>(
-				sql,
-				new
-				{
-					@charId = characterId,
-					@typeId = typeId,
-				}  )
-				.ToList();
-
-			return listStats;
 		}
 
 
