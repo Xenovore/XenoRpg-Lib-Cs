@@ -1,6 +1,8 @@
 ﻿//==============================================================================
 // KeyedCollectionEx
 // • Works like dictionary but allows specifying a class property as the key
+// • Use lambda expression to set class property, e.g.:
+//   var  _collectionItemTypes = new KeyedCollectionEx<string, ItemTypeClass>( itemType => itemType.Name );
 //==============================================================================
 using System;
 using System.Collections.ObjectModel;

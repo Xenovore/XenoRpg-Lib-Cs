@@ -112,22 +112,22 @@ namespace XRpg
 			List<Item> listItems =
 				XRpgDB.Conn.Query<Item, ItemContainer, Item>(
 					sql,
-					( item, cont) => { item.Container = cont; return item; },
+					( item, cont ) => { item.Container = cont; return item; },
 					new { @rootContainerId = containerId },
 					splitOn: "ItemId"
 				).ToList();
 
-			var newContainer = buildInventoryTree_r( listItems[0], listItems );
+			var newContainer = BuildInventoryTree_r( listItems[ 0 ], listItems );
 
 			return newContainer;
 		}
 
 
-		static private Item buildInventoryTree_r( Item parentItem, List<Item> listItems )
+		static private Item BuildInventoryTree_r( Item parentItem, List<Item> listItems )
 		{
-			if ( listItems == null || !listItems.Any()) return null;
+			if ( listItems == null || !listItems.Any() )
+				return null;
 
-			parentItem.Container._listItems = new List<Item>();
 			parentItem.Container._listItems = listItems;
 
 			foreach ( var item in listItems )
@@ -137,9 +137,9 @@ namespace XRpg
 				{
 					uint parentId = item.Id;
 
-					var newCont = buildInventoryTree_r(
+					var newCont = BuildInventoryTree_r(
 						item,
-						listItems.FindAll( ( itm ) => itm.ParentContId == parentId ) );
+						listItems.FindAll( i => i.ParentContId == parentId ) );
 
 					//if ( newCont != null )
 					//{
@@ -154,7 +154,7 @@ namespace XRpg
 
 			}
 
-			return listItems[0]; //FIrst in list is container?
+			return listItems[ 0 ]; //FIrst in list is container?
 		}
 
 
@@ -177,9 +177,10 @@ namespace XRpg
 
 			const string sql = @"SELECT * FROM Items WHERE ";
 
-			List<Item> listItems = XRpgDB.Conn.Query<Item>(sql).AsList();
+			List<Item> listItems = XRpgDB.Conn.Query<Item>( sql ).AsList();
 
-			if ( !bRecurse ) return listItems;
+			if ( !bRecurse )
+				return listItems;
 
 			//TODO: For each CONTAINER, recurse and get contained items
 			foreach ( Item item in listItems )
@@ -189,5 +190,7 @@ namespace XRpg
 
 			return listItems;
 		}
+
+		//TODO: SAVE ITEM EDITOR CHANGES
 	}
 }

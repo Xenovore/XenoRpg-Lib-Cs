@@ -104,6 +104,9 @@ namespace XRpg
 		}
 
 
+		//TODO: SAVE CHARACTER EDITOR CHANGES
+
+
 		//----------------------------------------------------------------------
 		static public Dictionary<int, StatBase> LoadAllStats()
 		{
@@ -158,6 +161,9 @@ namespace XRpg
 
 			return dictStatTypes;
 		}
+
+
+		//TODO: SAVE STAT EDITOR CHANGES
 
 
 		//TODO: UPDATE TO SAVE ALL STATS
