@@ -63,22 +63,22 @@ namespace XRpg
 	
 			float level = 0;
 			level += GetAverageLevel(
-				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.AttribPhysical ) );
+				ListStats.Where( stat => stat.BaseInfo.TypeId == StatTypeEnum.AttribPhysical ) );
 
 			level += GetAverageLevel(
-				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.AttribMental ) );
+				ListStats.Where( stat => stat.BaseInfo.TypeId == StatTypeEnum.AttribMental ) );
 
 			level += GetAverageLevel(
-				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.AttribSpecial ) );
+				ListStats.Where( stat => stat.BaseInfo.TypeId == StatTypeEnum.AttribSpecial ) );
 
 			level += GetAverageLevel(
-				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.Skill ) );
+				ListStats.Where( stat => stat.BaseInfo.TypeId == StatTypeEnum.Skill ) );
 
 			level += GetAverageLevel(
-				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.Resistance ) );
+				ListStats.Where( stat => stat.BaseInfo.TypeId == StatTypeEnum.Resistance ) );
 
 			level += GetAverageLevel(
-				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.Special ) );
+				ListStats.Where( stat => stat.BaseInfo.TypeId == StatTypeEnum.Special ) );
 
 			Level = level / 6.0f;
 

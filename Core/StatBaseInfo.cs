@@ -15,7 +15,7 @@ namespace XRpg
 		public string       Name         { get; set; }
 		public string       Abbr         { get; set; } // Abbreviation, e.g. ST = Strength, IT = Intuition, IG = Intelligence
 
-		public StatTypeEnum Type         { get; set; }
+		public StatTypeEnum TypeId       { get; set; }
 		public string       TypeName     { get; set; }
 		public string       Description  { get; set; } // Last here so it's last in gridview
 		public float        LevelMin     { get; set; } // Level range min.; can't go below this*

@@ -55,14 +55,27 @@ namespace XRpg
 		//----------------------------------------------------------------------
 		static public List<StatBaseInfo> LoadAllStatsBaseInfo()
 		{
-			const string sqlStats =
+			const string sql =
 				@"SELECT
-				*
-				FROM StatsBase";
-				//WHERE StatsBase.Type IN @types";
+					StatsBase.Id,
+					StatsBase.Name,
+					Abbr,
+					TypeId,
+					StatTypes.Name AS TypeName,
+					LevelMin,
+					LevelBaseLo,
+					LevelBaseHi,
+					LevelMax,
+					ScorePerLvl,
+					XPCost,
+					ApplyType,
+					ApplyHow,
+					ApplyPercent,
+					Description
+				FROM StatsBase
+				JOIN StatTypes ON StatTypes.Id = TypeId";
 
-			var list = XRpgDB.Conn.Query<StatBaseInfo>( sqlStats )
-				.ToList();
+			var list = XRpgDB.Conn.Query<StatBaseInfo>( sql ).ToList();
 
 			return list;
 		}
@@ -70,20 +83,14 @@ namespace XRpg
 
 		static public List<int> LoadStatModifierIds( int statId )
 		{
-			const string sqlMods =
+			const string sql =
 				@"SELECT
 					StatsBase.Id
 				FROM StatsBase
 				JOIN StatModifiers_map AS mods ON mods.StatId = StatsBase.Id
 				WHERE mods.TargetStatId = @statId";
 
-				var list =
-					XRpgDB.Conn.Query<int>(
-					sqlMods,
-					new
-					{
-						@statId = statId
-					} ).ToList();
+				var list = XRpgDB.Conn.Query<int>( sql, new { @statId = statId } ).ToList();
 
 				return list;
 		}
@@ -127,11 +134,19 @@ namespace XRpg
 
 
 		//----------------------------------------------------------------------
-		static public CharacterBase GetCharacterById( uint id )
+		static public CharacterBase GetCharacterById( uint id, bool loadStats = true )
 		{
 			Debug.Assert( ListCharactersAll?.Count > 0 );
 
-			return ListCharactersAll.First( character => character.Id == id );
+			CharacterBase charBase = ListCharactersAll.First( character => character.Id == id );
+
+
+			if ( loadStats )
+			{
+				charBase.ListStats = LoadCharacterStats( id );
+			}
+			
+			return charBase;
 		}
 
 
