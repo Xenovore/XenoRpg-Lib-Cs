@@ -1,11 +1,9 @@
 ﻿#pragma warning disable RECS0091 // Use 'var' keyword when possible
 
 using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
-using System.Data.SQLite;
+using System.Linq;
 using Dapper;
 using XRpg.Utility;
 
@@ -17,73 +15,23 @@ namespace XRpg
 	//==========================================================================
 	static public class CharacterManager
 	{
-		// These are here to be able to cache results...
-		//static private Dictionary<int, CharacterBase> _dictCharactersAll;
-
-		//static private Dictionary<int, Stat> _dictAttribsAll;
-		//static private Dictionary<int, Stat> _dictSkillsAll;
-		//static private Dictionary<int, Stat> _dictSpecialStatsAll;
+		//! Character Manager should own these, not the UI
+		static public List<CharacterBase> ListCharactersAll { get; set; }
+		static public List<StatBaseInfo>  ListStatsInfoAll  { get; set; }
 
 		static CharacterManager()
 		{
 		}
 
 
+		// • Explicitly call Init(), so we know stuff should be initialized already
 		//----------------------------------------------------------------------
-		static public CharacterBase LoadCharacterById( uint Id )
+		static public void Init()
 		{
-			Debug.Assert( XRpgDB.Conn != null );
+			XRpgDB.Init();
 
-			const string sql =
-				@"SELECT * FROM Characters
-				WHERE Characters.Id = @charId";
-
-			CharacterBase character = XRpgDB.Conn.Query<CharacterBase>(
-				sql,
-				new { @charId = Id } ).FirstOrDefault();
-
-			return character;
-		}
-
-
-		//----------------------------------------------------------------------
-		// LoadCharacterStats()
-		// • id = character ID
-		// • type = physical, mental, etc. 0 =  all
-		//----------------------------------------------------------------------
-		static public List<Stat> LoadCharacterStats( uint characterId, uint typeId = 0 )
-		{
-			Debug.Assert( characterId > 0 );
-
-			string sql =
-				@"SELECT
-					StatsBase.Id,
-					StatsBase.Name,
-					StatsBase.Abbr,
-					StatsBase.Description,
-					StatsBase.TypeId,
-					StatTypes.Name AS TypeName,
-					CharacterStats.Level,
-					CharacterStats.XpToNextLvl
-				FROM CharacterStats
-				JOIN StatsBase ON StatsBase.Id = CharacterStats.StatId
-				JOIN StatTypes ON StatTypes.Id = StatsBase.TypeId
-				WHERE CharacterStats.CharacterId = @charId";
-
-			// Load by stat type; 0 = all...
-			if ( typeId != 0 )
-				sql += @" AND StatsBase.TypeId = @typeId";
-
-			var listStats = XRpgDB.Conn.Query<Stat>(
-				sql,
-				new
-				{
-					@charId = characterId,
-					@typeId = typeId,
-				}  )
-				.ToList();
-
-			return listStats;
+			ListCharactersAll = LoadAllCharacters();
+			ListStatsInfoAll  = LoadAllStatsBaseInfo();
 		}
 
 
@@ -104,11 +52,8 @@ namespace XRpg
 		}
 
 
-		//TODO: SAVE CHARACTER EDITOR CHANGES
-
-
 		//----------------------------------------------------------------------
-		static public Dictionary<int, StatBase> LoadAllStats()
+		static public List<StatBaseInfo> LoadAllStatsBaseInfo()
 		{
 			const string sqlStats =
 				@"SELECT
@@ -116,12 +61,15 @@ namespace XRpg
 				FROM StatsBase";
 				//WHERE StatsBase.Type IN @types";
 
-			var dictStats = XRpgDB.Conn.Query<StatBase>( sqlStats )
-				.ToDictionary( stat => stat.Id, stat => stat );
+			var list = XRpgDB.Conn.Query<StatBaseInfo>( sqlStats )
+				.ToList();
 
-			//TODO:
-			//
-			// ----- Now fetch modifiers for each attribute...
+			return list;
+		}
+
+
+		static public List<int> LoadStatModifierIds( int statId )
+		{
 			const string sqlMods =
 				@"SELECT
 					StatsBase.Id
@@ -129,21 +77,15 @@ namespace XRpg
 				JOIN StatModifiers_map AS mods ON mods.StatId = StatsBase.Id
 				WHERE mods.TargetStatId = @statId";
 
-			//TODO: Fetch modifiers individually for now...
-			foreach( var kvp in dictStats )
-			{
-				//kvp.Value.listModIds = new List<int>();
-
-				kvp.Value.listModIds =
+				var list =
 					XRpgDB.Conn.Query<int>(
 					sqlMods,
 					new
 					{
-						@statId = kvp.Key
+						@statId = statId
 					} ).ToList();
-			}
 
-			return dictStats;
+				return list;
 		}
 
 
@@ -163,12 +105,90 @@ namespace XRpg
 		}
 
 
+		//TODO: SAVE CHARACTER EDITOR CHANGES
+		static public void SaveCharacter() {}
+
+
+		//----------------------------------------------------------------------
+		static public CharacterBase LoadCharacterById( uint Id )
+		{
+			Debug.Assert( XRpgDB.Conn != null );
+
+			const string sql =
+				@"SELECT * FROM Characters
+				WHERE Characters.Id = @charId";
+
+			CharacterBase character = XRpgDB.Conn.Query<CharacterBase>(
+				sql,
+				new { @charId = Id } ).FirstOrDefault();
+
+			return character;
+		}
+
+
+		//----------------------------------------------------------------------
+		static public CharacterBase GetCharacterById( uint id )
+		{
+			Debug.Assert( ListCharactersAll?.Count > 0 );
+
+			return ListCharactersAll.First( character => character.Id == id );
+		}
+
+
+		//----------------------------------------------------------------------
+		// LoadCharacterStats()
+		// • id = character ID
+		// • type = physical, mental, etc. 0 =  all
+		//----------------------------------------------------------------------
+		static public List<StatCharacter> LoadCharacterStats( uint characterId, uint typeId = 0 )
+		{
+			Debug.Assert( characterId > 0 );
+
+			string sql =
+				@"SELECT
+					CharacterStats.CharacterId,
+					CharacterStats.StatId AS StatBaseInfoId,
+					CharacterStats.Level,
+					CharacterStats.LevelTotal,
+					CharacterStats.XpToNextLvl
+				FROM CharacterStats
+				WHERE CharacterStats.CharacterId = @charId";
+
+			// Load by stat type; 0 = all...
+			if ( typeId != 0 )
+				sql += @" AND StatsBase.TypeId = @typeId";
+
+			var listStats = XRpgDB.Conn.Query<StatCharacter>(
+				sql,
+				new
+				{
+					@charId = characterId,
+					@typeId = typeId,
+				}  )
+				.ToList();
+
+			
+			// Get all base stat info...
+			if ( ListStatsInfoAll?.Count == 0 ) { LoadAllStatsBaseInfo(); }
+			foreach ( var stat in listStats )
+			{
+				stat.BaseInfo = ListStatsInfoAll.First( baseInfo => baseInfo.Id == stat.StatBaseInfoId );
+			}
+			
+			//TODO: Load stat modifiers...
+			foreach ( var stat in listStats )
+			{}
+
+			return listStats;
+		}
+
+
 		//TODO: SAVE STAT EDITOR CHANGES
 
 
 		//TODO: UPDATE TO SAVE ALL STATS
 		//----------------------------------------------------------------------
-		static public int SaveMasterAttribs( List<Stat> listNewAttribs )
+		static public int SaveMasterAttribs( List<StatBaseInfo> listNewAttribs )
 		{
 			Debug.Assert( listNewAttribs != null );
 

@@ -1,9 +1,8 @@
 ﻿#pragma warning disable RECS0091 // Use 'var' keyword when possible
 
-using System;
-using System.Linq;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using Dapper;
 using XRpg.Utility;
 
@@ -21,6 +20,16 @@ namespace XRpg
 
 		static InventoryManager()
 		{
+		}
+
+
+		// • Explicitly call Init(), so we know stuff should be initialized already
+		//----------------------------------------------------------------------
+		static public void Init()
+		{
+			XRpgDB.Init();
+
+			//TODO: Load all items into memory?
 		}
 
 

@@ -80,6 +80,7 @@
   <ItemGroup>
     <Compile Include="Core\ItemType.cs" />
     <Compile Include="Core\ItemTypes.cs" />
+    <Compile Include="Core\StatCharacter.cs" />
     <Compile Include="Managers\ActionManager.cs" />
     <Compile Include="Core\Profession.cs" />
     <Compile Include="Core\Recipe.cs" />
@@ -96,7 +97,7 @@
     <Compile Include="Core\Item.cs" />
     <Compile Include="Managers\InventoryManager.cs" />
     <Compile Include="Core\Materials.cs" />
-    <Compile Include="Core\Stat.cs" />
+    <Compile Include="Core\StatBaseInfo.cs" />
     <Compile Include="Utility\EnumMapper.generated.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>

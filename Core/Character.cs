@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 
 namespace XRpg
 {
@@ -32,7 +30,7 @@ namespace XRpg
 		// Guild List
 		//
 
-		public List<Stat> ListAllStats { get; set; }
+		public List<StatCharacter> ListStats { get; set; }
 
 		// Root container for all character inventory; this container is never
 		// displayed, only acting as the root for all other inventory containers...
@@ -45,7 +43,7 @@ namespace XRpg
 		}
 
 
-		private float GetAverageLevel( IEnumerable<Stat> listStats )
+		private float GetAverageLevel( IEnumerable<StatCharacter> listStats )
 		{
 			Debug.Assert( listStats != null );
 
@@ -62,24 +60,25 @@ namespace XRpg
 
 		public float CalculateCharacterLevel()
 		{
+	
 			float level = 0;
 			level += GetAverageLevel(
-				ListAllStats.Where(	stat => stat.TypeId == StatTypeEnum.AttribPhysical ) );
+				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.AttribPhysical ) );
 
 			level += GetAverageLevel(
-				ListAllStats.Where(	stat => stat.TypeId == StatTypeEnum.AttribMental ) );
+				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.AttribMental ) );
 
 			level += GetAverageLevel(
-				ListAllStats.Where(	stat => stat.TypeId == StatTypeEnum.AttribSpecial ) );
+				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.AttribSpecial ) );
 
 			level += GetAverageLevel(
-				ListAllStats.Where( stat => stat.TypeId == StatTypeEnum.Skill ) );
+				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.Skill ) );
 
 			level += GetAverageLevel(
-				ListAllStats.Where( stat => stat.TypeId == StatTypeEnum.Resistance ) );
+				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.Resistance ) );
 
 			level += GetAverageLevel(
-				ListAllStats.Where( stat => stat.TypeId == StatTypeEnum.Special ) );
+				ListStats.Where( stat => stat.BaseInfo.Type == StatTypeEnum.Special ) );
 
 			Level = level / 6.0f;
 

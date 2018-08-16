@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace XRpg
+﻿namespace XRpg
 {
 	public class Action
 	{
@@ -21,7 +16,7 @@ namespace XRpg
 		public float m_fDiffBase;
 		public float m_fDiffTotal;
 		public ActionType m_actionType;
-		public Stat m_statSkill; // Associated skill
+		public StatCharacter m_statSkill; // Associated skill
 		public float m_fRollMax;    // RNG range
 		public int m_iXPForFail;    // Fail XP Amount
 		public int m_iXPForSuccess; // Success XP Amount

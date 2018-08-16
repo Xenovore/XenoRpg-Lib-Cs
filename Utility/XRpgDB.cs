@@ -5,8 +5,8 @@
 //==============================================================================
 
 using System;
-using System.IO;
 using System.Data.SQLite;
+using System.IO;
 
 namespace XRpg.Utility
 {
@@ -16,11 +16,20 @@ namespace XRpg.Utility
 
 		static SQLiteConnection _sqlConn = null;
 
+		//TODO: Make this more robust; if _sqlConn is null, call OpenConnection()
 		public static SQLiteConnection Conn	=> _sqlConn;
 
 
 		static XRpgDB()
 		{
+		}
+
+
+		public static bool Init()
+		{
+			// Don't open another connection if we already have one...
+			if ( _sqlConn != null ) return true;
+
 			bool bCreateTables = OpenConnection();
 			if ( bCreateTables )
 			{
@@ -30,6 +39,9 @@ namespace XRpg.Utility
 					throw new ApplicationException( "Failed to create DB tables!" );
 				}
 			}
+
+			// For now, just return true; any errors will result in an exception
+			return true;
 		}
 
 
