@@ -56,7 +56,7 @@ namespace XRpg.Utility
 				// But, need to know if it's necessary to create the tables...
 				if ( !File.Exists( _xRpgDbLocation ) )
 				{
-					// ...and might as explicitly create it.
+					// ...and might as well explicitly create it.
 					SQLiteConnection.CreateFile( _xRpgDbLocation );
 					bCreateTables = true;
 				}
